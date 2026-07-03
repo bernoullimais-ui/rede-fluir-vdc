@@ -244,7 +244,7 @@ async function saveAppConfigAsync(config) {
             }
         } catch (e) {
             console.error("Falha ao sincronizar com o Supabase:", e);
-            alert("Erro ao sincronizar com o Supabase. Salvo localmente no navegador.");
+            alert("Erro ao sincronizar com o Supabase: " + (e.message || e.details || JSON.stringify(e)) + "\n\nAs alterações foram salvas localmente no seu navegador.");
         }
     }
 }
