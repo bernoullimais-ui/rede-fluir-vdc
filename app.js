@@ -14,6 +14,7 @@ const DEFAULT_CONFIG = {
     adminPassword: 'admin123',
     logoText: 'Fluir',
     logoImage: '',
+    heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
     modalities: [
@@ -92,6 +93,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 // Colunas de customização com fallback seguro caso o banco ainda não tenha sido alterado
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
                 finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
+                finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
             } else {
@@ -108,6 +110,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                     admin_password: DEFAULT_CONFIG.adminPassword,
                     logo_text: DEFAULT_CONFIG.logoText,
                     logo_image: DEFAULT_CONFIG.logoImage,
+                    hero_image: DEFAULT_CONFIG.heroImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle
                 });
@@ -210,6 +213,7 @@ async function saveAppConfigAsync(config) {
                     admin_password: config.adminPassword,
                     logo_text: config.logoText,
                     logo_image: config.logoImage,
+                    hero_image: config.heroImage,
                     hero_title: config.heroTitle,
                     hero_subtitle: config.heroSubtitle
                 });
@@ -406,6 +410,12 @@ async function initLandingPage() {
     const heroSubtitle = document.getElementById('hero-subtitle');
     if (heroSubtitle && config.heroSubtitle) {
         heroSubtitle.textContent = config.heroSubtitle;
+    }
+
+    // Update Hero Image dynamically
+    const heroImage = document.getElementById('hero-image');
+    if (heroImage && config.heroImage && config.heroImage.trim() !== '') {
+        heroImage.src = config.heroImage;
     }
 
     // 1. Update Contact Links and Info
@@ -658,6 +668,7 @@ async function loadAdminDashboard() {
             // Novos campos de customização
             config.logoText = document.getElementById('cfg-logo-text').value.trim();
             config.logoImage = document.getElementById('cfg-logo-image').value.trim();
+            config.heroImage = document.getElementById('cfg-hero-image').value.trim();
             config.heroTitle = document.getElementById('cfg-hero-title').value.trim();
             config.heroSubtitle = document.getElementById('cfg-hero-subtitle').value.trim();
             
@@ -722,6 +733,67 @@ async function loadAdminDashboard() {
             } catch (err) {
                 console.error("Erro no upload da logo:", err);
                 alert("Erro ao enviar logo: " + err.message + "\n\nCertifique-se de que você criou um bucket público chamado 'images' no painel do Supabase Storage com políticas de escrita para usuários anônimos (anon).");
+                btnText.textContent = "Erro";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } finally {
+                label.style.opacity = "1";
+                label.style.pointerEvents = "auto";
+            }
+        });
+    }
+
+    // Ouvinte para upload da imagem do Hero
+    const heroFileInput = document.getElementById('hero-file-input');
+    if (heroFileInput) {
+        heroFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const label = document.getElementById('upload-label-hero-img');
+            const btnText = label.querySelector('.upload-btn-text');
+            const originalText = btnText.textContent;
+
+            btnText.textContent = "Enviando...";
+            label.style.opacity = "0.7";
+            label.style.pointerEvents = "none";
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error("Supabase não inicializado. Verifique a conexão.");
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `hero_${Date.now()}.${fileExt}`;
+                const filePath = `hero/${fileName}`;
+
+                const { data, error } = await supabaseClient.storage
+                    .from('images')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('images')
+                    .getPublicUrl(filePath);
+
+                if (!publicUrlData || !publicUrlData.publicUrl) {
+                    throw new Error("Não foi possível gerar a URL pública do hero.");
+                }
+
+                document.getElementById('cfg-hero-image').value = publicUrlData.publicUrl;
+
+                btnText.textContent = "Sucesso!";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error("Erro no upload da imagem do hero:", err);
+                alert("Erro ao enviar imagem: " + err.message + "\n\nCertifique-se de que você criou um bucket público chamado 'images' no painel do Supabase Storage com políticas de escrita para usuários anônimos (anon).");
                 btnText.textContent = "Erro";
                 setTimeout(() => {
                     btnText.textContent = originalText;
@@ -883,6 +955,7 @@ async function loadConfigForm() {
     // Carregar novos campos de customização
     document.getElementById('cfg-logo-text').value = config.logoText || '';
     document.getElementById('cfg-logo-image').value = config.logoImage || '';
+    document.getElementById('cfg-hero-image').value = config.heroImage || '';
     document.getElementById('cfg-hero-title').value = config.heroTitle || '';
     document.getElementById('cfg-hero-subtitle').value = config.heroSubtitle || '';
 }

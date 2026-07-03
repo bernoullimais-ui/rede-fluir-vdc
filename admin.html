@@ -219,6 +219,19 @@
                             <input type="text" class="admin-control" id="cfg-logo-text" placeholder="Ex: Fluir">
                         </div>
                         <div class="admin-form-group">
+                            <label class="admin-label" for="cfg-hero-image">Imagem de Destaque do Hero (Opcional)</label>
+                            <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                                <input type="text" class="admin-control" id="cfg-hero-image" placeholder="URL da imagem do hero..." style="flex: 1;">
+                                <label class="btn" id="upload-label-hero-img" style="border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; background-color: #f1f5f9; color: #475569; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; margin-bottom: 0;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                    </svg>
+                                    <span class="upload-btn-text">Upload Imagem</span>
+                                    <input type="file" id="hero-file-input" accept="image/*" style="display: none;">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
                             <label class="admin-label" for="cfg-hero-title">Título da Seção Hero (Use quebras de linha para ajustar na tela)</label>
                             <textarea class="admin-control" id="cfg-hero-title" rows="2" placeholder="Ex: A vida&#10;acontece em&#10;movimento." required style="resize: vertical; font-family: inherit; padding: 10px;"></textarea>
                         </div>
