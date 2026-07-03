@@ -33,10 +33,10 @@ const DEFAULT_CONFIG = {
 };
 
 // --- INITIALIZE SUPABASE CLIENT ---
-let supabase = null;
+let supabaseClient = null;
 if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log("Supabase inicializado com sucesso!");
     } catch (e) {
         console.error("Erro ao carregar o cliente do Supabase:", e);
@@ -55,10 +55,10 @@ async function getAppConfigAsync(forceRefresh = false) {
         return cachedConfig;
     }
 
-    if (supabase) {
+    if (supabaseClient) {
         try {
             // 1. Buscar configuração geral
-            const { data: configData, error: configError } = await supabase
+            const { data: configData, error: configError } = await supabaseClient
                 .from('config')
                 .select('*')
                 .eq('id', 1)
@@ -67,7 +67,7 @@ async function getAppConfigAsync(forceRefresh = false) {
             if (configError) throw configError;
 
             // 2. Buscar modalidades
-            const { data: modData, error: modError } = await supabase
+            const { data: modData, error: modError } = await supabaseClient
                 .from('modalities')
                 .select('*');
 
@@ -87,7 +87,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.adminPassword = configData.admin_password || finalConfig.adminPassword;
             } else {
                 // Inicializar com dados padrão se a tabela estiver vazia
-                await supabase.from('config').insert({
+                await supabaseClient.from('config').insert({
                     id: 1,
                     whatsapp: DEFAULT_CONFIG.whatsapp,
                     address: DEFAULT_CONFIG.address,
@@ -114,7 +114,7 @@ async function getAppConfigAsync(forceRefresh = false) {
             } else {
                 // Inicializar modalidades padrão no banco se estiver vazio
                 for (const mod of DEFAULT_CONFIG.modalities) {
-                    await supabase.from('modalities').insert({
+                    await supabaseClient.from('modalities').insert({
                         id: mod.id,
                         name: mod.name,
                         active: mod.active,
@@ -149,10 +149,10 @@ async function saveAppConfigAsync(config) {
     localStorage.setItem('fluir_config', JSON.stringify(config));
     cachedConfig = config; // Atualizar o cache local imediatamente
 
-    if (supabase) {
+    if (supabaseClient) {
         try {
             // Salvar Config Geral
-            const { error: configError } = await supabase
+            const { error: configError } = await supabaseClient
                 .from('config')
                 .upsert({
                     id: 1,
@@ -170,7 +170,7 @@ async function saveAppConfigAsync(config) {
 
             // Salvar Modalidades
             for (const mod of config.modalities) {
-                const { error: modError } = await supabase
+                const { error: modError } = await supabaseClient
                     .from('modalities')
                     .upsert({
                         id: mod.id,
@@ -189,9 +189,9 @@ async function saveAppConfigAsync(config) {
 
 // Obter Leads
 async function getLeadsAsync() {
-    if (supabase) {
+    if (supabaseClient) {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('leads')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -223,9 +223,9 @@ async function saveLeadAsync(lead) {
     localLeads.unshift(lead);
     localStorage.setItem('fluir_leads', JSON.stringify(localLeads));
 
-    if (supabase) {
+    if (supabaseClient) {
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('leads')
                 .insert({
                     name: lead.name,
@@ -249,9 +249,9 @@ async function updateLeadStatusAsync(leadId, newStatus) {
     localLeads = localLeads.map(l => l.id === leadId ? { ...l, status: newStatus } : l);
     localStorage.setItem('fluir_leads', JSON.stringify(localLeads));
 
-    if (supabase && isUUID(leadId)) {
+    if (supabaseClient && isUUID(leadId)) {
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('leads')
                 .update({ status: newStatus })
                 .eq('id', leadId);
@@ -300,7 +300,7 @@ async function initLandingPage() {
     const config = await getAppConfigAsync();
     
     console.log("=== INICIALIZAÇÃO DA LANDING PAGE ===");
-    console.log("Origem das configurações da LP:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+    console.log("Origem das configurações da LP:", supabaseClient ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
     console.log("Dados carregados:", config);
     
     // 1. Update Contact Links and Info
@@ -471,7 +471,7 @@ async function checkAdminAuth() {
                         const config = await configPromise;
                         
                         console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
-                        console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+                        console.log("Origem das configurações:", supabaseClient ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
                         console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
                         
                         // Comparar ignorando espaços extras no início/fim
