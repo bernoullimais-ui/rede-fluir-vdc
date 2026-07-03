@@ -13,6 +13,7 @@ const DEFAULT_CONFIG = {
     linkedin: 'https://linkedin.com/company/redefluir',
     adminPassword: 'admin123',
     logoText: 'Fluir',
+    logoImage: '',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
     modalities: [
@@ -90,6 +91,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.adminPassword = configData.admin_password || finalConfig.adminPassword;
                 // Colunas de customização com fallback seguro caso o banco ainda não tenha sido alterado
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
+                finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
             } else {
@@ -105,6 +107,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                     linkedin: DEFAULT_CONFIG.linkedin,
                     admin_password: DEFAULT_CONFIG.adminPassword,
                     logo_text: DEFAULT_CONFIG.logoText,
+                    logo_image: DEFAULT_CONFIG.logoImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle
                 });
@@ -131,6 +134,37 @@ async function getAppConfigAsync(forceRefresh = false) {
                         image: mod.image
                     });
                 }
+            }
+
+            // 3. Buscar espaços
+            try {
+                const { data: spacesData, error: spacesError } = await supabaseClient
+                    .from('spaces')
+                    .select('*');
+
+                if (spacesError) throw spacesError;
+
+                if (spacesData && spacesData.length > 0) {
+                    finalConfig.spaces = DEFAULT_CONFIG.spaces.map(defaultSpace => {
+                        const dbSpace = spacesData.find(s => s.id === defaultSpace.id);
+                        return dbSpace ? {
+                            id: dbSpace.id,
+                            name: dbSpace.name,
+                            image: dbSpace.image
+                        } : defaultSpace;
+                    });
+                } else {
+                    // Inicializar espaços padrão no banco se estiver vazio
+                    for (const space of DEFAULT_CONFIG.spaces) {
+                        await supabaseClient.from('spaces').insert({
+                            id: space.id,
+                            name: space.name,
+                            image: space.image
+                        });
+                    }
+                }
+            } catch (spacesErr) {
+                console.warn("Erro ao buscar/inicializar espaços (a tabela 'spaces' pode não estar criada no Supabase ainda):", spacesErr);
             }
 
             cachedConfig = finalConfig;
@@ -175,6 +209,7 @@ async function saveAppConfigAsync(config) {
                     linkedin: config.linkedin,
                     admin_password: config.adminPassword,
                     logo_text: config.logoText,
+                    logo_image: config.logoImage,
                     hero_title: config.heroTitle,
                     hero_subtitle: config.heroSubtitle
                 });
@@ -192,6 +227,20 @@ async function saveAppConfigAsync(config) {
                         image: mod.image
                     });
                 if (modError) throw modError;
+            }
+
+            // Salvar Espaços
+            if (config.spaces) {
+                for (const space of config.spaces) {
+                    const { error: spaceError } = await supabaseClient
+                        .from('spaces')
+                        .upsert({
+                            id: space.id,
+                            name: space.name,
+                            image: space.image
+                        });
+                    if (spaceError) throw spaceError;
+                }
             }
         } catch (e) {
             console.error("Falha ao sincronizar com o Supabase:", e);
@@ -319,7 +368,9 @@ async function initLandingPage() {
     // 0. Update Logo dynamically
     const logoContainer = document.getElementById('logo-container');
     if (logoContainer) {
-        if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+        if (config.logoImage && config.logoImage.trim() !== '') {
+            logoContainer.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: 40px; width: auto; object-fit: contain; display: block;">`;
+        } else if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
             logoContainer.innerHTML = `<span style="font-weight: 800; font-size: 1.6rem; letter-spacing: -0.5px; color: white;">${config.logoText}</span>`;
         } else {
             // Logo padrão SVG
@@ -337,8 +388,14 @@ async function initLandingPage() {
         }
     }
     const footerLogo = document.getElementById('footer-logo-text');
-    if (footerLogo && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
-        footerLogo.textContent = config.logoText;
+    if (footerLogo) {
+        if (config.logoImage && config.logoImage.trim() !== '') {
+            footerLogo.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: 35px; width: auto; object-fit: contain; display: block;">`;
+        } else if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+            footerLogo.innerHTML = `<span style="font-weight: 800; font-size: 1.3rem; color: white;">${config.logoText}</span>`;
+        } else {
+            footerLogo.textContent = 'Fluir';
+        }
     }
 
     // Update Hero Title and Subtitle dynamically
@@ -498,10 +555,14 @@ async function checkAdminAuth() {
             try {
                 const config = await configPromise;
                 
-                // Atualizar o texto da logo no header do admin
+                // Atualizar a logo no header do admin
                 const adminLogoContainer = document.getElementById('admin-logo-container');
-                if (adminLogoContainer && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
-                    adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                if (adminLogoContainer) {
+                    if (config.logoImage && config.logoImage.trim() !== '') {
+                        adminLogoContainer.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: 30px; width: auto; object-fit: contain; display: block; margin-right: 8px;"> <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                    } else if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+                        adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                    }
                 }
                 
                 await loadAdminDashboard();
@@ -535,10 +596,14 @@ async function checkAdminAuth() {
                             authenticated = true;
                             document.getElementById('login-overlay').style.display = 'none';
                             
-                            // Atualizar o texto da logo no header do admin
+                            // Atualizar a logo no header do admin
                             const adminLogoContainer = document.getElementById('admin-logo-container');
-                            if (adminLogoContainer && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
-                                adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                            if (adminLogoContainer) {
+                                if (config.logoImage && config.logoImage.trim() !== '') {
+                                    adminLogoContainer.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: 30px; width: auto; object-fit: contain; display: block; margin-right: 8px;"> <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                                } else if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+                                    adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                                }
                             }
                             
                             await loadAdminDashboard();
@@ -573,6 +638,7 @@ async function loadAdminDashboard() {
     await renderLeadsTable();
     await loadConfigForm();
     await renderModalitiesList();
+    await renderSpacesList();
     
     // Register general save listeners
     const configForm = document.getElementById('admin-config-form');
@@ -591,6 +657,7 @@ async function loadAdminDashboard() {
             
             // Novos campos de customização
             config.logoText = document.getElementById('cfg-logo-text').value.trim();
+            config.logoImage = document.getElementById('cfg-logo-image').value.trim();
             config.heroTitle = document.getElementById('cfg-hero-title').value.trim();
             config.heroSubtitle = document.getElementById('cfg-hero-subtitle').value.trim();
             
@@ -602,6 +669,67 @@ async function loadAdminDashboard() {
             await saveAppConfigAsync(config);
             showToast('Configurações salvas com sucesso!');
             await renderStats();
+        });
+    }
+
+    // Ouvinte para upload da imagem da Logo
+    const logoFileInput = document.getElementById('logo-file-input');
+    if (logoFileInput) {
+        logoFileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const label = document.getElementById('upload-label-logo-img');
+            const btnText = label.querySelector('.upload-btn-text');
+            const originalText = btnText.textContent;
+
+            btnText.textContent = "Enviando...";
+            label.style.opacity = "0.7";
+            label.style.pointerEvents = "none";
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error("Supabase não inicializado. Verifique a conexão.");
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `logo_${Date.now()}.${fileExt}`;
+                const filePath = `brand/${fileName}`;
+
+                const { data, error } = await supabaseClient.storage
+                    .from('images')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('images')
+                    .getPublicUrl(filePath);
+
+                if (!publicUrlData || !publicUrlData.publicUrl) {
+                    throw new Error("Não foi possível gerar a URL pública da logo.");
+                }
+
+                document.getElementById('cfg-logo-image').value = publicUrlData.publicUrl;
+
+                btnText.textContent = "Sucesso!";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error("Erro no upload da logo:", err);
+                alert("Erro ao enviar logo: " + err.message + "\n\nCertifique-se de que você criou um bucket público chamado 'images' no painel do Supabase Storage com políticas de escrita para usuários anônimos (anon).");
+                btnText.textContent = "Erro";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } finally {
+                label.style.opacity = "1";
+                label.style.pointerEvents = "auto";
+            }
         });
     }
 
@@ -754,6 +882,7 @@ async function loadConfigForm() {
     
     // Carregar novos campos de customização
     document.getElementById('cfg-logo-text').value = config.logoText || '';
+    document.getElementById('cfg-logo-image').value = config.logoImage || '';
     document.getElementById('cfg-hero-title').value = config.heroTitle || '';
     document.getElementById('cfg-hero-subtitle').value = config.heroSubtitle || '';
 }
@@ -881,6 +1010,142 @@ async function renderModalitiesList() {
             
             await saveAppConfigAsync(config);
             showToast('Modalidades atualizadas com sucesso!');
+        });
+    }
+}
+
+// Spaces management in Admin tab
+async function renderSpacesList() {
+    const config = await getAppConfigAsync();
+    const listDiv = document.getElementById('admin-spaces-list');
+    if (!listDiv) return;
+    
+    listDiv.innerHTML = '';
+    config.spaces.forEach(space => {
+        const div = document.createElement('div');
+        div.className = 'admin-modality-item';
+        div.innerHTML = `
+            <div class="admin-modality-header">
+                <span class="admin-modality-name" id="space-title-text-${space.id}">${space.name}</span>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Nome do Espaço</label>
+                <input type="text" class="admin-control space-name-input" data-id="${space.id}" value="${space.name}">
+            </div>
+            <div class="admin-form-group" style="margin-bottom: 0;">
+                <label class="admin-label">Imagem do Espaço</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                    <input type="text" class="admin-control space-image-input" data-id="${space.id}" value="${space.image}" style="flex: 1;">
+                    <label class="btn" id="upload-label-space-${space.id}" style="border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; background-color: #f1f5f9; color: #475569; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; margin-bottom: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        <span class="upload-btn-text">Upload</span>
+                        <input type="file" class="space-file-input" data-id="${space.id}" accept="image/*" style="display: none;">
+                    </label>
+                </div>
+            </div>
+        `;
+        listDiv.appendChild(div);
+        
+        // Sincronizar título ao digitar nome
+        const nameInput = div.querySelector('.space-name-input');
+        nameInput.addEventListener('input', (e) => {
+            const titleSpan = document.getElementById(`space-title-text-${space.id}`);
+            if (titleSpan) {
+                titleSpan.textContent = e.target.value || space.id;
+            }
+        });
+    });
+
+    // Registrar ouvintes para os inputs de arquivo
+    listDiv.querySelectorAll('.space-file-input').forEach(fileInput => {
+        fileInput.addEventListener('change', async (e) => {
+            const spaceId = e.target.getAttribute('data-id');
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const label = document.getElementById(`upload-label-space-${spaceId}`);
+            const btnText = label.querySelector('.upload-btn-text');
+            const originalText = btnText.textContent;
+            
+            // Estado de carregamento
+            btnText.textContent = "Enviando...";
+            label.style.opacity = "0.7";
+            label.style.pointerEvents = "none";
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error("Supabase não inicializado. Verifique a conexão.");
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${spaceId}_${Date.now()}.${fileExt}`;
+                const filePath = `spaces/${fileName}`;
+
+                // Enviar para o bucket 'images'
+                const { data, error } = await supabaseClient.storage
+                    .from('images')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                // Obter URL pública
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('images')
+                    .getPublicUrl(filePath);
+
+                if (!publicUrlData || !publicUrlData.publicUrl) {
+                    throw new Error("Não foi possível gerar a URL pública da imagem.");
+                }
+
+                // Atualizar o input correspondente com a nova URL pública
+                const urlInput = listDiv.querySelector(`.space-image-input[data-id="${spaceId}"]`);
+                if (urlInput) {
+                    urlInput.value = publicUrlData.publicUrl;
+                }
+
+                btnText.textContent = "Sucesso!";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error("Erro no upload da imagem do espaço:", err);
+                alert("Erro ao enviar imagem: " + err.message + "\n\nCertifique-se de que você criou um bucket público chamado 'images' no painel do Supabase Storage com políticas de escrita para usuários anônimos (anon).");
+                btnText.textContent = "Erro";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } finally {
+                label.style.opacity = "1";
+                label.style.pointerEvents = "auto";
+            }
+        });
+    });
+
+    // Save spaces configs
+    const btnSaveSpaces = document.getElementById('btn-save-spaces');
+    if (btnSaveSpaces) {
+        btnSaveSpaces.addEventListener('click', async () => {
+            const config = await getAppConfigAsync();
+            
+            // Loop inputs to read state
+            config.spaces = config.spaces.map(space => {
+                const nameInput = listDiv.querySelector(`.space-name-input[data-id="${space.id}"]`);
+                const imgInput = listDiv.querySelector(`.space-image-input[data-id="${space.id}"]`);
+                
+                return {
+                    ...space,
+                    name: nameInput ? nameInput.value.trim() : space.name,
+                    image: imgInput ? imgInput.value.trim() : space.image
+                };
+            });
+            
+            await saveAppConfigAsync(config);
+            showToast('Fotos do espaço atualizadas com sucesso!');
         });
     }
 }
