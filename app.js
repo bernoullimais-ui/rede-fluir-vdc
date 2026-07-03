@@ -423,42 +423,57 @@ async function initLandingPage() {
 let authenticated = false;
 
 async function checkAdminAuth() {
-    const config = await getAppConfigAsync();
-    const sessionAuth = sessionStorage.getItem('fluir_auth');
-    
-    console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
-    console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
-    console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
-    
-    if (sessionAuth === 'true') {
-        authenticated = true;
-        document.getElementById('login-overlay').style.display = 'none';
-        await loadAdminDashboard();
-    } else {
-        document.getElementById('login-overlay').style.display = 'flex';
+    try {
+        const config = await getAppConfigAsync();
+        const sessionAuth = sessionStorage.getItem('fluir_auth');
         
-        // Listen to password submit
-        const loginForm = document.getElementById('login-form');
-        const loginError = document.getElementById('login-error');
+        console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
+        console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+        console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
         
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const passInput = document.getElementById('login-password').value;
-                
-                // Comparar ignorando espaços extras no início/fim
-                if (passInput.trim() === config.adminPassword.trim()) {
-                    sessionStorage.setItem('fluir_auth', 'true');
-                    authenticated = true;
-                    document.getElementById('login-overlay').style.display = 'none';
-                    await loadAdminDashboard();
-                } else {
-                    console.warn(`Tentativa de login malsucedida. Digitado: "${passInput}", Esperado: "${config.adminPassword}"`);
-                    loginError.textContent = 'Senha incorreta. Tente novamente.';
-                    loginError.style.display = 'block';
-                }
-            });
+        if (sessionAuth === 'true') {
+            authenticated = true;
+            document.getElementById('login-overlay').style.display = 'none';
+            try {
+                await loadAdminDashboard();
+            } catch (dashboardErr) {
+                console.error("Erro ao carregar o dashboard:", dashboardErr);
+                alert("Erro ao carregar o painel: " + dashboardErr.message);
+            }
+        } else {
+            document.getElementById('login-overlay').style.display = 'flex';
+            
+            // Listen to password submit
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    try {
+                        const passInput = document.getElementById('login-password').value;
+                        
+                        // Comparar ignorando espaços extras no início/fim
+                        if (passInput.trim() === config.adminPassword.trim()) {
+                            sessionStorage.setItem('fluir_auth', 'true');
+                            authenticated = true;
+                            document.getElementById('login-overlay').style.display = 'none';
+                            await loadAdminDashboard();
+                        } else {
+                            console.warn(`Tentativa de login malsucedida. Digitado: "${passInput}", Esperado: "${config.adminPassword}"`);
+                            loginError.textContent = 'Senha incorreta. Tente novamente.';
+                            loginError.style.display = 'block';
+                        }
+                    } catch (submitErr) {
+                        console.error("Erro ao processar o formulário de login:", submitErr);
+                        alert("Erro ao tentar fazer login: " + submitErr.message);
+                    }
+                });
+            }
         }
+    } catch (authErr) {
+        console.error("Erro crítico de autenticação:", authErr);
+        alert("Erro crítico no carregamento da autenticação: " + authErr.message);
     }
 }
 
@@ -736,25 +751,30 @@ async function exportLeadsToCSV() {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', async () => {
-    // Detect page type
-    if (document.getElementById('vip-form') || document.getElementById('modalities-grid')) {
-        await initLandingPage();
-    }
-    
-    if (document.getElementById('login-overlay')) {
-        await checkAdminAuth();
-        
-        // Wire logout button
-        const logoutBtn = document.getElementById('admin-logout');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', handleLogout);
+    try {
+        // Detect page type
+        if (document.getElementById('vip-form') || document.getElementById('modalities-grid')) {
+            await initLandingPage();
         }
-
-        // Table filters
-        const statusFilter = document.getElementById('filter-status');
-        const modalityFilter = document.getElementById('filter-modality');
         
-        if (statusFilter) statusFilter.addEventListener('change', renderLeadsTable);
-        if (modalityFilter) modalityFilter.addEventListener('change', renderLeadsTable);
+        if (document.getElementById('login-overlay')) {
+            await checkAdminAuth();
+            
+            // Wire logout button
+            const logoutBtn = document.getElementById('admin-logout');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', handleLogout);
+            }
+
+            // Table filters
+            const statusFilter = document.getElementById('filter-status');
+            const modalityFilter = document.getElementById('filter-modality');
+            
+            if (statusFilter) statusFilter.addEventListener('change', renderLeadsTable);
+            if (modalityFilter) modalityFilter.addEventListener('change', renderLeadsTable);
+        }
+    } catch (domErr) {
+        console.error("Erro na inicialização da página:", domErr);
+        alert("Erro ao inicializar página: " + domErr.message);
     }
 });
