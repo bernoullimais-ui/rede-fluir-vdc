@@ -777,11 +777,88 @@ async function renderModalitiesList() {
                 </label>
             </div>
             <div class="admin-form-group" style="margin-bottom: 0;">
-                <label class="admin-label">Caminho da Imagem de Fundo</label>
-                <input type="text" class="admin-control modality-image-input" data-id="${mod.id}" value="${mod.image}">
+                <label class="admin-label">Imagem de Fundo</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 4px;">
+                    <input type="text" class="admin-control modality-image-input" data-id="${mod.id}" value="${mod.image}" style="flex: 1;">
+                    <label class="btn" id="upload-label-${mod.id}" style="border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; background-color: #f1f5f9; color: #475569; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; margin-bottom: 0;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        <span class="upload-btn-text">Upload</span>
+                        <input type="file" class="modality-file-input" data-id="${mod.id}" accept="image/*" style="display: none;">
+                    </label>
+                </div>
             </div>
         `;
         listDiv.appendChild(div);
+    });
+
+    // Registrar ouvintes para os inputs de arquivo
+    listDiv.querySelectorAll('.modality-file-input').forEach(fileInput => {
+        fileInput.addEventListener('change', async (e) => {
+            const modId = e.target.getAttribute('data-id');
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const label = document.getElementById(`upload-label-${modId}`);
+            const btnText = label.querySelector('.upload-btn-text');
+            const originalText = btnText.textContent;
+            
+            // Estado de carregamento
+            btnText.textContent = "Enviando...";
+            label.style.opacity = "0.7";
+            label.style.pointerEvents = "none";
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error("Supabase não inicializado. Verifique a conexão.");
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${modId}_${Date.now()}.${fileExt}`;
+                const filePath = `modalities/${fileName}`;
+
+                // Enviar para o bucket 'images'
+                const { data, error } = await supabaseClient.storage
+                    .from('images')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                // Obter URL pública
+                const { data: publicUrlData } = supabaseClient.storage
+                    .from('images')
+                    .getPublicUrl(filePath);
+
+                if (!publicUrlData || !publicUrlData.publicUrl) {
+                    throw new Error("Não foi possível gerar a URL pública da imagem.");
+                }
+
+                // Atualizar o input correspondente com a nova URL pública
+                const urlInput = listDiv.querySelector(`.modality-image-input[data-id="${modId}"]`);
+                if (urlInput) {
+                    urlInput.value = publicUrlData.publicUrl;
+                }
+
+                btnText.textContent = "Sucesso!";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } catch (err) {
+                console.error("Erro no upload da imagem:", err);
+                alert("Erro ao enviar imagem: " + err.message + "\n\nCertifique-se de que você criou um bucket público chamado 'images' no painel do Supabase Storage com políticas de escrita para usuários anônimos (anon).");
+                btnText.textContent = "Erro";
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                }, 2000);
+            } finally {
+                label.style.opacity = "1";
+                label.style.pointerEvents = "auto";
+            }
+        });
     });
 
     // Save modalities configs
