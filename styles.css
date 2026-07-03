@@ -260,9 +260,10 @@ img {
     line-height: 1.8;
 }
 
-.intro-text p:last-child {
-    font-weight: 600;
+#intro-footer {
+    font-weight: 700;
     color: var(--primary-dark);
+    margin-top: 24px;
 }
 
 /* --- MODALIDADES --- */
