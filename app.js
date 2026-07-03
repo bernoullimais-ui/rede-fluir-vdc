@@ -1,4 +1,8 @@
-// Configurações Padrão
+// Supabase Connection Credentials
+const SUPABASE_URL = ''; // Cole aqui a URL do seu Supabase (ex: https://xxxx.supabase.co)
+const SUPABASE_ANON_KEY = ''; // Cole aqui a sua Anon Key do Supabase (chave pública)
+
+// Configurações Padrão de Fallback
 const DEFAULT_CONFIG = {
     whatsapp: '5577999999999',
     address: 'Av. Olívia Flores, 1200 - Candeias, Vitória da Conquista - BA',
@@ -28,29 +32,235 @@ const DEFAULT_CONFIG = {
     ]
 };
 
-// --- INITIALIZATION ---
-function getAppConfig() {
+// --- INITIALIZE SUPABASE CLIENT ---
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("Supabase inicializado com sucesso!");
+    } catch (e) {
+        console.error("Erro ao carregar o cliente do Supabase:", e);
+    }
+} else {
+    console.warn("Supabase URL ou Anon Key não configuradas. Usando LocalStorage.");
+}
+
+// --- ASYNC DATA STORAGE HELPERS ---
+
+// Obter Configurações
+async function getAppConfigAsync() {
+    if (supabase) {
+        try {
+            // 1. Buscar configuração geral
+            const { data: configData, error: configError } = await supabase
+                .from('config')
+                .select('*')
+                .eq('id', 1)
+                .maybeSingle();
+
+            if (configError) throw configError;
+
+            // 2. Buscar modalidades
+            const { data: modData, error: modError } = await supabase
+                .from('modalities')
+                .select('*');
+
+            if (modError) throw modError;
+
+            let finalConfig = { ...DEFAULT_CONFIG };
+
+            // Se existirem dados de config no banco
+            if (configData) {
+                finalConfig.whatsapp = configData.whatsapp || finalConfig.whatsapp;
+                finalConfig.address = configData.address || finalConfig.address;
+                finalConfig.mapsLink = configData.maps_link || finalConfig.mapsLink;
+                finalConfig.instagram = configData.instagram || finalConfig.instagram;
+                finalConfig.facebook = configData.facebook || finalConfig.facebook;
+                finalConfig.youtube = configData.youtube || finalConfig.youtube;
+                finalConfig.linkedin = configData.linkedin || finalConfig.linkedin;
+                finalConfig.adminPassword = configData.admin_password || finalConfig.adminPassword;
+            } else {
+                // Inicializar com dados padrão se a tabela estiver vazia
+                await supabase.from('config').insert({
+                    id: 1,
+                    whatsapp: DEFAULT_CONFIG.whatsapp,
+                    address: DEFAULT_CONFIG.address,
+                    maps_link: DEFAULT_CONFIG.mapsLink,
+                    instagram: DEFAULT_CONFIG.instagram,
+                    facebook: DEFAULT_CONFIG.facebook,
+                    youtube: DEFAULT_CONFIG.youtube,
+                    linkedin: DEFAULT_CONFIG.linkedin,
+                    admin_password: DEFAULT_CONFIG.adminPassword
+                });
+            }
+
+            // Se existirem modalidades no banco
+            if (modData && modData.length > 0) {
+                finalConfig.modalities = DEFAULT_CONFIG.modalities.map(defaultMod => {
+                    const dbMod = modData.find(m => m.id === defaultMod.id);
+                    return dbMod ? {
+                        id: dbMod.id,
+                        name: dbMod.name,
+                        active: dbMod.active,
+                        image: dbMod.image
+                    } : defaultMod;
+                });
+            } else {
+                // Inicializar modalidades padrão no banco se estiver vazio
+                for (const mod of DEFAULT_CONFIG.modalities) {
+                    await supabase.from('modalities').insert({
+                        id: mod.id,
+                        name: mod.name,
+                        active: mod.active,
+                        image: mod.image
+                    });
+                }
+            }
+
+            return finalConfig;
+        } catch (e) {
+            console.warn("Supabase indisponível, usando dados locais de LocalStorage:", e);
+        }
+    }
+    
+    // Fallback: LocalStorage
     let config = localStorage.getItem('fluir_config');
     if (!config) {
         localStorage.setItem('fluir_config', JSON.stringify(DEFAULT_CONFIG));
         return DEFAULT_CONFIG;
     }
-    // Deep merge to ensure newly added properties (like spaces) exist
     const parsed = JSON.parse(config);
     return { ...DEFAULT_CONFIG, ...parsed };
 }
 
-function saveAppConfig(config) {
+// Salvar Configurações
+async function saveAppConfigAsync(config) {
+    // Salvar localmente como backup
     localStorage.setItem('fluir_config', JSON.stringify(config));
+
+    if (supabase) {
+        try {
+            // Salvar Config Geral
+            const { error: configError } = await supabase
+                .from('config')
+                .upsert({
+                    id: 1,
+                    whatsapp: config.whatsapp,
+                    address: config.address,
+                    maps_link: config.mapsLink,
+                    instagram: config.instagram,
+                    facebook: config.facebook,
+                    youtube: config.youtube,
+                    linkedin: config.linkedin,
+                    admin_password: config.adminPassword
+                });
+
+            if (configError) throw configError;
+
+            // Salvar Modalidades
+            for (const mod of config.modalities) {
+                const { error: modError } = await supabase
+                    .from('modalities')
+                    .upsert({
+                        id: mod.id,
+                        name: mod.name,
+                        active: mod.active,
+                        image: mod.image
+                    });
+                if (modError) throw modError;
+            }
+        } catch (e) {
+            console.error("Falha ao sincronizar com o Supabase:", e);
+            alert("Erro ao sincronizar com o Supabase. Salvo localmente no navegador.");
+        }
+    }
 }
 
+// Obter Leads
+async function getLeadsAsync() {
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('leads')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            return data.map(lead => ({
+                id: lead.id,
+                name: lead.name,
+                whatsapp: lead.whatsapp,
+                email: lead.email,
+                modality: lead.modality,
+                status: lead.status,
+                date: lead.created_at
+            }));
+        } catch (e) {
+            console.warn("Falha ao puxar leads do Supabase, usando LocalStorage:", e);
+        }
+    }
+
+    let leads = localStorage.getItem('fluir_leads');
+    return leads ? JSON.parse(leads) : [];
+}
+
+// Gravar Novo Lead
+async function saveLeadAsync(lead) {
+    // Salvar backup local
+    const localLeads = getLeads();
+    localLeads.unshift(lead);
+    localStorage.setItem('fluir_leads', JSON.stringify(localLeads));
+
+    if (supabase) {
+        try {
+            const { error } = await supabase
+                .from('leads')
+                .insert({
+                    name: lead.name,
+                    whatsapp: lead.whatsapp,
+                    email: lead.email,
+                    modality: lead.modality,
+                    status: lead.status
+                });
+
+            if (error) throw error;
+        } catch (e) {
+            console.error("Erro ao enviar lead para o Supabase:", e);
+        }
+    }
+}
+
+// Atualizar Status do Lead
+async function updateLeadStatusAsync(leadId, newStatus) {
+    // Salvar backup local
+    let localLeads = getLeads();
+    localLeads = localLeads.map(l => l.id === leadId ? { ...l, status: newStatus } : l);
+    localStorage.setItem('fluir_leads', JSON.stringify(localLeads));
+
+    if (supabase && isUUID(leadId)) {
+        try {
+            const { error } = await supabase
+                .from('leads')
+                .update({ status: newStatus })
+                .eq('id', leadId);
+
+            if (error) throw error;
+        } catch (e) {
+            console.error("Erro ao atualizar status no Supabase:", e);
+        }
+    }
+}
+
+// Helper síncronos legados para compatibilidade e backup
 function getLeads() {
     let leads = localStorage.getItem('fluir_leads');
     return leads ? JSON.parse(leads) : [];
 }
 
-function saveLeads(leads) {
-    localStorage.setItem('fluir_leads', JSON.stringify(leads));
+function isUUID(str) {
+    const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return regex.test(str);
 }
 
 // Format Phone Input
@@ -75,8 +285,8 @@ function showToast(message) {
 }
 
 // --- LANDING PAGE LOGIC ---
-function initLandingPage() {
-    const config = getAppConfig();
+async function initLandingPage() {
+    const config = await getAppConfigAsync();
     
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
@@ -175,7 +385,7 @@ function initLandingPage() {
 
     const vipForm = document.getElementById('vip-form');
     if (vipForm) {
-        vipForm.addEventListener('submit', (e) => {
+        vipForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const name = document.getElementById('vip-name').value.trim();
@@ -198,9 +408,7 @@ function initLandingPage() {
                 date: new Date().toISOString()
             };
 
-            const leads = getLeads();
-            leads.unshift(newLead); // Add to the top
-            saveLeads(leads);
+            await saveLeadAsync(newLead);
 
             // Clear form
             vipForm.reset();
@@ -214,14 +422,14 @@ function initLandingPage() {
 // --- ADMIN PANEL LOGIC ---
 let authenticated = false;
 
-function checkAdminAuth() {
-    const config = getAppConfig();
+async function checkAdminAuth() {
+    const config = await getAppConfigAsync();
     const sessionAuth = sessionStorage.getItem('fluir_auth');
     
     if (sessionAuth === 'true') {
         authenticated = true;
         document.getElementById('login-overlay').style.display = 'none';
-        loadAdminDashboard();
+        await loadAdminDashboard();
     } else {
         document.getElementById('login-overlay').style.display = 'flex';
         
@@ -230,7 +438,7 @@ function checkAdminAuth() {
         const loginError = document.getElementById('login-error');
         
         if (loginForm) {
-            loginForm.addEventListener('submit', (e) => {
+            loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const passInput = document.getElementById('login-password').value;
                 
@@ -238,7 +446,7 @@ function checkAdminAuth() {
                     sessionStorage.setItem('fluir_auth', 'true');
                     authenticated = true;
                     document.getElementById('login-overlay').style.display = 'none';
-                    loadAdminDashboard();
+                    await loadAdminDashboard();
                 } else {
                     loginError.textContent = 'Senha incorreta. Tente novamente.';
                     loginError.style.display = 'block';
@@ -253,21 +461,21 @@ function handleLogout() {
     window.location.reload();
 }
 
-function loadAdminDashboard() {
+async function loadAdminDashboard() {
     if (!authenticated) return;
     
     initAdminTabs();
-    renderStats();
-    renderLeadsTable();
-    loadConfigForm();
-    renderModalitiesList();
+    await renderStats();
+    await renderLeadsTable();
+    await loadConfigForm();
+    await renderModalitiesList();
     
     // Register general save listeners
     const configForm = document.getElementById('admin-config-form');
     if (configForm) {
-        configForm.addEventListener('submit', (e) => {
+        configForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const config = getAppConfig();
+            const config = await getAppConfigAsync();
             
             config.whatsapp = document.getElementById('cfg-whatsapp').value.trim();
             config.address = document.getElementById('cfg-address').value.trim();
@@ -282,9 +490,9 @@ function loadAdminDashboard() {
                 config.adminPassword = newPass;
             }
             
-            saveAppConfig(config);
+            await saveAppConfigAsync(config);
             showToast('Configurações salvas com sucesso!');
-            renderStats();
+            await renderStats();
         });
     }
 
@@ -321,8 +529,8 @@ function initAdminTabs() {
 }
 
 // Stats counter
-function renderStats() {
-    const leads = getLeads();
+async function renderStats() {
+    const leads = await getLeadsAsync();
     const totalLeads = leads.length;
     const pendingLeads = leads.filter(l => l.status === 'Pendente').length;
     const contactLeads = leads.filter(l => l.status === 'Em Atendimento').length;
@@ -335,8 +543,8 @@ function renderStats() {
 }
 
 // Render leads list
-function renderLeadsTable() {
-    const leads = getLeads();
+async function renderLeadsTable() {
+    const leads = await getLeadsAsync();
     const filterStatus = document.getElementById('filter-status').value;
     const filterModality = document.getElementById('filter-modality').value;
     const tbody = document.getElementById('leads-tbody');
@@ -347,7 +555,7 @@ function renderLeadsTable() {
     // Dynamic loading of modalities options in filters if not loaded
     const modalFilter = document.getElementById('filter-modality');
     if (modalFilter && modalFilter.options.length <= 1) {
-        const config = getAppConfig();
+        const config = await getAppConfigAsync();
         config.modalities.forEach(mod => {
             const opt = document.createElement('option');
             opt.value = mod.name;
@@ -397,7 +605,7 @@ function renderLeadsTable() {
 
     // Listeners for status changes
     tbody.querySelectorAll('.status-select').forEach(select => {
-        select.addEventListener('change', (e) => {
+        select.addEventListener('change', async (e) => {
             const leadId = e.target.getAttribute('data-id');
             const newStatus = e.target.value;
             
@@ -405,11 +613,9 @@ function renderLeadsTable() {
             e.target.className = `status-select ${getStatusClass(newStatus)}`;
             
             // Save
-            let leads = getLeads();
-            leads = leads.map(l => l.id === leadId ? { ...l, status: newStatus } : l);
-            saveLeads(leads);
+            await updateLeadStatusAsync(leadId, newStatus);
             
-            renderStats();
+            await renderStats();
             showToast('Status do lead atualizado!');
         });
     });
@@ -426,8 +632,8 @@ function getStatusClass(status) {
 }
 
 // Load config form inputs in Admin
-function loadConfigForm() {
-    const config = getAppConfig();
+async function loadConfigForm() {
+    const config = await getAppConfigAsync();
     document.getElementById('cfg-whatsapp').value = config.whatsapp;
     document.getElementById('cfg-address').value = config.address;
     document.getElementById('cfg-maps').value = config.mapsLink;
@@ -439,8 +645,8 @@ function loadConfigForm() {
 }
 
 // Modalities management in Admin tab
-function renderModalitiesList() {
-    const config = getAppConfig();
+async function renderModalitiesList() {
+    const config = await getAppConfigAsync();
     const listDiv = document.getElementById('admin-modalities-list');
     if (!listDiv) return;
     
@@ -467,8 +673,8 @@ function renderModalitiesList() {
     // Save modalities configs
     const btnSaveModalities = document.getElementById('btn-save-modalities');
     if (btnSaveModalities) {
-        btnSaveModalities.addEventListener('click', () => {
-            const config = getAppConfig();
+        btnSaveModalities.addEventListener('click', async () => {
+            const config = await getAppConfigAsync();
             
             // Loop inputs to read state
             config.modalities = config.modalities.map(mod => {
@@ -482,15 +688,15 @@ function renderModalitiesList() {
                 };
             });
             
-            saveAppConfig(config);
+            await saveAppConfigAsync(config);
             showToast('Modalidades atualizadas com sucesso!');
         });
     }
 }
 
 // Export captured leads data to CSV
-function exportLeadsToCSV() {
-    const leads = getLeads();
+async function exportLeadsToCSV() {
+    const leads = await getLeadsAsync();
     if (leads.length === 0) {
         showToast('Não há leads para exportar.');
         return;
@@ -523,14 +729,14 @@ function exportLeadsToCSV() {
 }
 
 // Initialize on DOM load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Detect page type
     if (document.getElementById('vip-form') || document.getElementById('modalities-grid')) {
-        initLandingPage();
+        await initLandingPage();
     }
     
     if (document.getElementById('login-overlay')) {
-        checkAdminAuth();
+        await checkAdminAuth();
         
         // Wire logout button
         const logoutBtn = document.getElementById('admin-logout');
