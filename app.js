@@ -426,6 +426,10 @@ async function checkAdminAuth() {
     const config = await getAppConfigAsync();
     const sessionAuth = sessionStorage.getItem('fluir_auth');
     
+    console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
+    console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+    console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
+    
     if (sessionAuth === 'true') {
         authenticated = true;
         document.getElementById('login-overlay').style.display = 'none';
@@ -442,12 +446,14 @@ async function checkAdminAuth() {
                 e.preventDefault();
                 const passInput = document.getElementById('login-password').value;
                 
-                if (passInput === config.adminPassword) {
+                // Comparar ignorando espaços extras no início/fim
+                if (passInput.trim() === config.adminPassword.trim()) {
                     sessionStorage.setItem('fluir_auth', 'true');
                     authenticated = true;
                     document.getElementById('login-overlay').style.display = 'none';
                     await loadAdminDashboard();
                 } else {
+                    console.warn(`Tentativa de login malsucedida. Digitado: "${passInput}", Esperado: "${config.adminPassword}"`);
                     loginError.textContent = 'Senha incorreta. Tente novamente.';
                     loginError.style.display = 'block';
                 }
