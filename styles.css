@@ -173,6 +173,7 @@ img {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     min-height: 90vh;
     padding-top: 160px;
+    padding-bottom: 120px;
     display: flex;
     align-items: center;
     color: var(--white);
