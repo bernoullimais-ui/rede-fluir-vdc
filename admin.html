@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo | Rede Fluir VDC</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin-body">
+
+    <!-- LOGIN SCREEN OVERLAY -->
+    <div class="login-overlay" id="login-overlay">
+        <div class="login-card">
+            <div class="login-title">Fluir Admin</div>
+            <div class="login-subtitle">Vitória da Conquista - BA</div>
+            
+            <div class="login-error" id="login-error"></div>
+            
+            <form id="login-form">
+                <div class="admin-form-group" style="text-align: left;">
+                    <label class="admin-label" for="login-password">Senha de Acesso</label>
+                    <input type="password" class="admin-control" id="login-password" placeholder="Digite a senha..." required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 12px; padding: 14px;">Entrar no Painel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN HEADER -->
+    <header class="admin-header">
+        <div class="admin-logo">
+            Fluir <span>Admin</span>
+            <span class="admin-badge">Vitória da Conquista</span>
+        </div>
+        <div class="admin-user">
+            <span style="font-weight: 600; font-size: 0.95rem; color: #475569;">Franqueado Fluir</span>
+            <button class="btn-logout" id="admin-logout">Sair</button>
+        </div>
+    </header>
+
+    <!-- MAIN ADMIN CONTAINER -->
+    <div class="admin-container">
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-link active" data-tab="leads">
+                <!-- Leads SVG Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Lista de Leads
+            </div>
+            <div class="sidebar-link" data-tab="config">
+                <!-- Settings SVG Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Configurações da LP
+            </div>
+            <div class="sidebar-link" data-tab="modalities">
+                <!-- Grid SVG Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                </svg>
+                Modalidades Ativas
+            </div>
+        </aside>
+
+        <!-- MAIN DASHBOARD CONTENT -->
+        <main class="admin-content">
+
+            <!-- TAB 1: LEADS LIST -->
+            <div class="admin-tab active" id="tab-leads">
+                <div class="admin-title-row">
+                    <h1 class="admin-page-title">Captura de Leads</h1>
+                    <button class="btn btn-primary" id="btn-export-leads" style="border-radius: 10px; padding: 10px 20px; font-size: 0.9rem; gap: 8px;">
+                        <!-- Excel/CSV Download SVG -->
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Exportar Leads (.CSV)
+                    </button>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Leads Recebidos</div>
+                        <div class="stat-value" id="stat-total">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Leads Pendentes</div>
+                        <div class="stat-value" id="stat-pending" style="color: #D97706;">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Em Atendimento</div>
+                        <div class="stat-value" id="stat-contact" style="color: #0284C7;">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Matriculados</div>
+                        <div class="stat-value" id="stat-enrolled" style="color: #059669;">0</div>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="table-filter-bar">
+                    <div class="filter-group">
+                        <label class="filter-label" for="filter-status">Status:</label>
+                        <select class="filter-select" id="filter-status">
+                            <option value="">Todos</option>
+                            <option value="Pendente">Pendente</option>
+                            <option value="Em Atendimento">Em Atendimento</option>
+                            <option value="Matriculado">Matriculado</option>
+                            <option value="Sem Interesse">Sem Interesse</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label" for="filter-modality">Modalidade:</label>
+                        <select class="filter-select" id="filter-modality">
+                            <option value="">Todas</option>
+                            <!-- Will be loaded dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Leads Table -->
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nome do Lead</th>
+                                <th>WhatsApp</th>
+                                <th>E-mail</th>
+                                <th>Modalidade</th>
+                                <th>Data Cadastro</th>
+                                <th>Status / Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody">
+                            <!-- Populated dynamically via app.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: GENERAL CONFIG -->
+            <div class="admin-tab" id="tab-config">
+                <div class="admin-title-row">
+                    <h1 class="admin-page-title">Configurações Gerais</h1>
+                </div>
+
+                <form id="admin-config-form">
+                    <div class="admin-card">
+                        <div class="admin-card-title">Informações de Contato da Franquia</div>
+                        <div class="grid-2">
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-whatsapp">WhatsApp Oficial (DDD + Número)</label>
+                                <input type="text" class="admin-control" id="cfg-whatsapp" required>
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-address">Endereço Físico</label>
+                                <input type="text" class="admin-control" id="cfg-address" required>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="cfg-maps">Link do Google Maps</label>
+                            <input type="url" class="admin-control" id="cfg-maps" required>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-title">Links de Redes Sociais</div>
+                        <div class="grid-2">
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-instagram">Instagram URL</label>
+                                <input type="url" class="admin-control" id="cfg-instagram">
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-facebook">Facebook URL</label>
+                                <input type="url" class="admin-control" id="cfg-facebook">
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-youtube">YouTube URL</label>
+                                <input type="url" class="admin-control" id="cfg-youtube">
+                            </div>
+                            <div class="admin-form-group">
+                                <label class="admin-label" for="cfg-linkedin">LinkedIn URL</label>
+                                <input type="url" class="admin-control" id="cfg-linkedin">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-title">Segurança</div>
+                        <div class="admin-form-group" style="max-width: 320px;">
+                            <label class="admin-label" for="cfg-password">Nova Senha do Painel (Opcional)</label>
+                            <input type="password" class="admin-control" id="cfg-password" placeholder="Digite apenas para alterar..." autocomplete="new-password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-admin-save">
+                        <!-- Save SVG -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                        </svg>
+                        Salvar Todas as Configurações
+                    </button>
+                </form>
+            </div>
+
+            <!-- TAB 3: MODALITIES MANAGEMENT -->
+            <div class="admin-tab" id="tab-modalities">
+                <div class="admin-title-row">
+                    <h1 class="admin-page-title">Gerenciar Modalidades</h1>
+                </div>
+
+                <div class="admin-card">
+                    <div class="admin-card-title" style="margin-bottom: 32px;">Ativar Modalidades e Imagens da Landing Page</div>
+                    
+                    <div class="admin-modalities-list" id="admin-modalities-list">
+                        <!-- Populated dynamically via app.js -->
+                    </div>
+
+                    <button class="btn-admin-save" id="btn-save-modalities" style="margin-top: 32px;">
+                        <!-- Save SVG -->
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                        </svg>
+                        Salvar Alterações de Modalidades
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Success Notification -->
+    <div class="toast" id="toast">
+        <!-- SVG Success Icon -->
+        <svg class="toast-success-icon" viewBox="0 0 20 20">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm-2 15l-5-5 1.41-1.41L8 12.17l7.59-7.59L17 6l-9 9z"/>
+        </svg>
+        <span class="toast-text">Configurações salvas com sucesso!</span>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="app.js"></script>
+</body>
+</html>
