@@ -47,8 +47,14 @@ if (SUPABASE_URL && SUPABASE_ANON_KEY) {
 
 // --- ASYNC DATA STORAGE HELPERS ---
 
-// Obter Configurações
-async function getAppConfigAsync() {
+// Obter Configurações com Cache para evitar multiplas chamadas simultâneas
+let cachedConfig = null;
+
+async function getAppConfigAsync(forceRefresh = false) {
+    if (cachedConfig && !forceRefresh) {
+        return cachedConfig;
+    }
+
     if (supabase) {
         try {
             // 1. Buscar configuração geral
@@ -117,6 +123,7 @@ async function getAppConfigAsync() {
                 }
             }
 
+            cachedConfig = finalConfig;
             return finalConfig;
         } catch (e) {
             console.warn("Supabase indisponível, usando dados locais de LocalStorage:", e);
@@ -127,16 +134,20 @@ async function getAppConfigAsync() {
     let config = localStorage.getItem('fluir_config');
     if (!config) {
         localStorage.setItem('fluir_config', JSON.stringify(DEFAULT_CONFIG));
+        cachedConfig = DEFAULT_CONFIG;
         return DEFAULT_CONFIG;
     }
     const parsed = JSON.parse(config);
-    return { ...DEFAULT_CONFIG, ...parsed };
+    const finalConfig = { ...DEFAULT_CONFIG, ...parsed };
+    cachedConfig = finalConfig;
+    return finalConfig;
 }
 
 // Salvar Configurações
 async function saveAppConfigAsync(config) {
     // Salvar localmente como backup
     localStorage.setItem('fluir_config', JSON.stringify(config));
+    cachedConfig = config; // Atualizar o cache local imediatamente
 
     if (supabase) {
         try {
@@ -424,17 +435,16 @@ let authenticated = false;
 
 async function checkAdminAuth() {
     try {
-        const config = await getAppConfigAsync();
         const sessionAuth = sessionStorage.getItem('fluir_auth');
         
-        console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
-        console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
-        console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
+        // Iniciar carregamento das configurações em segundo plano imediatamente
+        const configPromise = getAppConfigAsync();
         
         if (sessionAuth === 'true') {
             authenticated = true;
             document.getElementById('login-overlay').style.display = 'none';
             try {
+                const config = await configPromise;
                 await loadAdminDashboard();
             } catch (dashboardErr) {
                 console.error("Erro ao carregar o dashboard:", dashboardErr);
@@ -443,15 +453,22 @@ async function checkAdminAuth() {
         } else {
             document.getElementById('login-overlay').style.display = 'flex';
             
-            // Listen to password submit
+            // Listen to password submit (Registrado IMEDIATAMENTE e de forma síncrona para evitar reloads no envio rápido)
             const loginForm = document.getElementById('login-form');
             const loginError = document.getElementById('login-error');
             
             if (loginForm) {
                 loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
+                    e.preventDefault(); // Impede o reload do navegador instantaneamente
                     try {
                         const passInput = document.getElementById('login-password').value;
+                        
+                        // Aguardar as configurações carregarem em segundo plano
+                        const config = await configPromise;
+                        
+                        console.log("=== SISTEMA DE AUTENTICAÇÃO ===");
+                        console.log("Origem das configurações:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+                        console.log("Senha atualmente configurada/esperada:", `"${config.adminPassword}"`);
                         
                         // Comparar ignorando espaços extras no início/fim
                         if (passInput.trim() === config.adminPassword.trim()) {
