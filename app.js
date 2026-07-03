@@ -12,6 +12,9 @@ const DEFAULT_CONFIG = {
     youtube: 'https://youtube.com/redefluir',
     linkedin: 'https://linkedin.com/company/redefluir',
     adminPassword: 'admin123',
+    logoText: 'Fluir',
+    heroTitle: 'A vida\nacontece em\nmovimento.',
+    heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
     modalities: [
         { id: 'natacao_bebe', name: 'Natação Bebê', active: true, image: 'assets/natacao_bebe.jpg' },
         { id: 'programa_gestantes', name: 'Programa de Gestantes', active: true, image: 'assets/programa_gestantes.jpg' },
@@ -85,6 +88,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.youtube = configData.youtube || finalConfig.youtube;
                 finalConfig.linkedin = configData.linkedin || finalConfig.linkedin;
                 finalConfig.adminPassword = configData.admin_password || finalConfig.adminPassword;
+                // Colunas de customização com fallback seguro caso o banco ainda não tenha sido alterado
+                finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
+                finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
+                finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
             } else {
                 // Inicializar com dados padrão se a tabela estiver vazia
                 await supabaseClient.from('config').insert({
@@ -96,7 +103,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                     facebook: DEFAULT_CONFIG.facebook,
                     youtube: DEFAULT_CONFIG.youtube,
                     linkedin: DEFAULT_CONFIG.linkedin,
-                    admin_password: DEFAULT_CONFIG.adminPassword
+                    admin_password: DEFAULT_CONFIG.adminPassword,
+                    logo_text: DEFAULT_CONFIG.logoText,
+                    hero_title: DEFAULT_CONFIG.heroTitle,
+                    hero_subtitle: DEFAULT_CONFIG.heroSubtitle
                 });
             }
 
@@ -163,7 +173,10 @@ async function saveAppConfigAsync(config) {
                     facebook: config.facebook,
                     youtube: config.youtube,
                     linkedin: config.linkedin,
-                    admin_password: config.adminPassword
+                    admin_password: config.adminPassword,
+                    logo_text: config.logoText,
+                    hero_title: config.heroTitle,
+                    hero_subtitle: config.heroSubtitle
                 });
 
             if (configError) throw configError;
@@ -303,6 +316,41 @@ async function initLandingPage() {
     console.log("Origem das configurações da LP:", supabaseClient ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
     console.log("Dados carregados:", config);
     
+    // 0. Update Logo dynamically
+    const logoContainer = document.getElementById('logo-container');
+    if (logoContainer) {
+        if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+            logoContainer.innerHTML = `<span style="font-weight: 800; font-size: 1.6rem; letter-spacing: -0.5px; color: white;">${config.logoText}</span>`;
+        } else {
+            // Logo padrão SVG
+            logoContainer.innerHTML = `
+                <svg width="130" height="40" viewBox="0 0 130 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.5 12C9.5 12 7.5 14 7.5 17.5V32H13.5V18.5C13.5 16.5 14.5 15.5 16 15.5C16.8 15.5 17.5 15.8 18 16.2V11.2C17.2 10.8 16.2 10.5 15 10.5C13.8 10.5 13 11 12.5 12Z" fill="white"/>
+                    <path d="M26.5 21C26.5 15 28.5 10.5 35 10.5C41 10.5 43 14.5 43 21H32.5C32.5 24.5 34 26.5 36.5 26.5C38.5 26.5 39.5 25.5 40 24.5H45.5C44.5 28.5 41.5 32 36 32C29.5 32 26.5 27.5 26.5 21ZM37.5 17C37.5 15.5 36.5 14.5 35 14.5C33.5 14.5 32.5 15.5 32.5 17H37.5Z" fill="white"/>
+                    <path d="M48.5 5.5H54.5V14C55.5 11.5 58 10.5 61 10.5C66.5 10.5 69.5 14.5 69.5 21C69.5 27.5 66.5 32 61 32C58 32 55.5 31 54.5 28.5V32H48.5V5.5ZM59 16C57 16 55.5 17.5 55.5 21.2C55.5 25 57 26.5 59 26.5C61 26.5 62.5 25 62.5 21.2C62.5 17.5 61 16 59 16Z" fill="white"/>
+                    <path d="M72.5 11H78.5V23.5C78.5 25.5 79.5 26.5 81.5 26.5C83.5 26.5 84.5 25.5 84.5 23.5V11H90.5V23C90.5 28.5 86.5 32 81.5 32C76.5 32 72.5 28.5 72.5 23V11Z" fill="white"/>
+                    <path d="M96 11H102V32H96V11Z" fill="white"/>
+                    <path d="M99 2C101.209 2 103 3.79086 103 6C103 8.20914 101.209 10 99 10C96.7909 10 95 8.20914 95 6C95 3.79086 96.7909 2 99 2Z" fill="#00D4FF"/>
+                    <path d="M106.5 12C108.5 12 110.5 14 110.5 17.5V32H116.5V18.5C116.5 16.5 117.5 15.5 119 15.5C119.8 15.5 120.5 15.8 121 16.2V11.2C120.2 10.8 119.2 10.5 118 10.5C116.8 10.5 116 11 115.5 12V11H109.5V12C108.5 12.2 107.5 12 106.5 12Z" fill="white"/>
+                </svg>
+            `;
+        }
+    }
+    const footerLogo = document.getElementById('footer-logo-text');
+    if (footerLogo && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+        footerLogo.textContent = config.logoText;
+    }
+
+    // Update Hero Title and Subtitle dynamically
+    const heroTitle = document.getElementById('hero-title');
+    if (heroTitle && config.heroTitle) {
+        heroTitle.innerHTML = config.heroTitle.replace(/\n/g, '<br>');
+    }
+    const heroSubtitle = document.getElementById('hero-subtitle');
+    if (heroSubtitle && config.heroSubtitle) {
+        heroSubtitle.textContent = config.heroSubtitle;
+    }
+
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
     
@@ -449,6 +497,13 @@ async function checkAdminAuth() {
             document.getElementById('login-overlay').style.display = 'none';
             try {
                 const config = await configPromise;
+                
+                // Atualizar o texto da logo no header do admin
+                const adminLogoContainer = document.getElementById('admin-logo-container');
+                if (adminLogoContainer && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+                    adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                }
+                
                 await loadAdminDashboard();
             } catch (dashboardErr) {
                 console.error("Erro ao carregar o dashboard:", dashboardErr);
@@ -479,6 +534,13 @@ async function checkAdminAuth() {
                             sessionStorage.setItem('fluir_auth', 'true');
                             authenticated = true;
                             document.getElementById('login-overlay').style.display = 'none';
+                            
+                            // Atualizar o texto da logo no header do admin
+                            const adminLogoContainer = document.getElementById('admin-logo-container');
+                            if (adminLogoContainer && config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
+                                adminLogoContainer.innerHTML = `${config.logoText} <span>Admin</span> <span class="admin-badge">Vitória da Conquista</span>`;
+                            }
+                            
                             await loadAdminDashboard();
                         } else {
                             console.warn(`Tentativa de login malsucedida. Digitado: "${passInput}", Esperado: "${config.adminPassword}"`);
@@ -526,6 +588,11 @@ async function loadAdminDashboard() {
             config.facebook = document.getElementById('cfg-facebook').value.trim();
             config.youtube = document.getElementById('cfg-youtube').value.trim();
             config.linkedin = document.getElementById('cfg-linkedin').value.trim();
+            
+            // Novos campos de customização
+            config.logoText = document.getElementById('cfg-logo-text').value.trim();
+            config.heroTitle = document.getElementById('cfg-hero-title').value.trim();
+            config.heroSubtitle = document.getElementById('cfg-hero-subtitle').value.trim();
             
             const newPass = document.getElementById('cfg-password').value.trim();
             if (newPass) {
@@ -684,6 +751,11 @@ async function loadConfigForm() {
     document.getElementById('cfg-youtube').value = config.youtube;
     document.getElementById('cfg-linkedin').value = config.linkedin;
     document.getElementById('cfg-password').value = ''; // Leave password empty for security, only overwrite if typed
+    
+    // Carregar novos campos de customização
+    document.getElementById('cfg-logo-text').value = config.logoText || '';
+    document.getElementById('cfg-hero-title').value = config.heroTitle || '';
+    document.getElementById('cfg-hero-subtitle').value = config.heroSubtitle || '';
 }
 
 // Modalities management in Admin tab

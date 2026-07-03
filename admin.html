@@ -30,7 +30,7 @@
 
     <!-- MAIN ADMIN HEADER -->
     <header class="admin-header">
-        <div class="admin-logo">
+        <div class="admin-logo" id="admin-logo-container">
             Fluir <span>Admin</span>
             <span class="admin-badge">Vitória da Conquista</span>
         </div>
@@ -189,6 +189,22 @@
                                 <label class="admin-label" for="cfg-linkedin">LinkedIn URL</label>
                                 <input type="url" class="admin-control" id="cfg-linkedin">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <div class="admin-card-title">Customização da Landing Page</div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="cfg-logo-text">Texto da Logo (Deixe em branco para usar a logo SVG padrão)</label>
+                            <input type="text" class="admin-control" id="cfg-logo-text" placeholder="Ex: Fluir">
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="cfg-hero-title">Título da Seção Hero (Use quebras de linha para ajustar na tela)</label>
+                            <textarea class="admin-control" id="cfg-hero-title" rows="2" placeholder="Ex: A vida&#10;acontece em&#10;movimento." required style="resize: vertical; font-family: inherit; padding: 10px;"></textarea>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="cfg-hero-subtitle">Subtítulo da Seção Hero</label>
+                            <textarea class="admin-control" id="cfg-hero-subtitle" rows="3" placeholder="Digite o subtítulo do hero..." required style="resize: vertical; font-family: inherit; padding: 10px;"></textarea>
                         </div>
                     </div>
 
