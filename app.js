@@ -17,6 +17,9 @@ const DEFAULT_CONFIG = {
     heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
+    introTitle: 'Rumo a Conquista.',
+    introText: 'Em breve, Vitória da Conquista receberá a mais nova forma de cuidar da saúde, do movimento e do equilíbrio da vida.\nO Fluir traz à Região Sudoeste toda a experiência de uma marca que na Bahia já transformou milhares de vidas e hoje oferece infraestrutura moderna, piscinas mantidas sempre limpas, climatizadas e tratadas com tecnologia de ozônio, atendimento humanizado, profissionais qualificados e excelência em cada detalhe.\nMais do que um estúdio ou academia, o nosso espaço foi projetado para oferecer uma experience completa, com a tranquilidade que você precisa para promover bem-estar, motivação e resultados reais para a sua rotina.\nAgora é a vez de Vitória da Conquista fazer parte dessa história.\nEstamos nos preparando para abrir as portas e receber você e sua família em um espaço moderno, totalmente pensado para que cada treino, aula e contato contribuam para uma vida mais saudável.',
+    introFooter: 'Seja bem-vindo(a) à Rede Fluir. Em breve, a vida flui por aqui.',
     modalities: [
         { id: 'natacao_bebe', name: 'Natação Bebê', active: true, image: 'assets/natacao_bebe.jpg' },
         { id: 'programa_gestantes', name: 'Programa de Gestantes', active: true, image: 'assets/programa_gestantes.jpg' },
@@ -96,6 +99,9 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
+                finalConfig.introTitle = configData.intro_title !== undefined && configData.intro_title !== null ? configData.intro_title : finalConfig.introTitle;
+                finalConfig.introText = configData.intro_text !== undefined && configData.intro_text !== null ? configData.intro_text : finalConfig.introText;
+                finalConfig.introFooter = configData.intro_footer !== undefined && configData.intro_footer !== null ? configData.intro_footer : finalConfig.introFooter;
             } else {
                 // Inicializar com dados padrão se a tabela estiver vazia
                 await supabaseClient.from('config').insert({
@@ -112,7 +118,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                     logo_image: DEFAULT_CONFIG.logoImage,
                     hero_image: DEFAULT_CONFIG.heroImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
-                    hero_subtitle: DEFAULT_CONFIG.heroSubtitle
+                    hero_subtitle: DEFAULT_CONFIG.heroSubtitle,
+                    intro_title: DEFAULT_CONFIG.introTitle,
+                    intro_text: DEFAULT_CONFIG.introText,
+                    intro_footer: DEFAULT_CONFIG.introFooter
                 });
             }
 
@@ -215,7 +224,10 @@ async function saveAppConfigAsync(config) {
                     logo_image: config.logoImage,
                     hero_image: config.heroImage,
                     hero_title: config.heroTitle,
-                    hero_subtitle: config.heroSubtitle
+                    hero_subtitle: config.heroSubtitle,
+                    intro_title: config.introTitle,
+                    intro_text: config.introText,
+                    intro_footer: config.introFooter
                 });
 
             if (configError) throw configError;
@@ -416,6 +428,24 @@ async function initLandingPage() {
     const heroImage = document.getElementById('hero-image');
     if (heroImage && config.heroImage && config.heroImage.trim() !== '') {
         heroImage.src = config.heroImage;
+    }
+
+    // Update Intro Section dynamically
+    const introTitle = document.getElementById('intro-title');
+    if (introTitle && config.introTitle) {
+        introTitle.textContent = config.introTitle;
+    }
+    const introParagraphs = document.getElementById('intro-paragraphs');
+    if (introParagraphs && config.introText) {
+        introParagraphs.innerHTML = config.introText
+            .split('\n')
+            .filter(p => p.trim() !== '')
+            .map(p => `<p>${p.trim()}</p>`)
+            .join('');
+    }
+    const introFooter = document.getElementById('intro-footer');
+    if (introFooter && config.introFooter) {
+        introFooter.textContent = config.introFooter;
     }
 
     // 1. Update Contact Links and Info
@@ -671,6 +701,9 @@ async function loadAdminDashboard() {
             config.heroImage = document.getElementById('cfg-hero-image').value.trim();
             config.heroTitle = document.getElementById('cfg-hero-title').value.trim();
             config.heroSubtitle = document.getElementById('cfg-hero-subtitle').value.trim();
+            config.introTitle = document.getElementById('cfg-intro-title').value.trim();
+            config.introText = document.getElementById('cfg-intro-text').value.trim();
+            config.introFooter = document.getElementById('cfg-intro-footer').value.trim();
             
             const newPass = document.getElementById('cfg-password').value.trim();
             if (newPass) {
@@ -958,6 +991,9 @@ async function loadConfigForm() {
     document.getElementById('cfg-hero-image').value = config.heroImage || '';
     document.getElementById('cfg-hero-title').value = config.heroTitle || '';
     document.getElementById('cfg-hero-subtitle').value = config.heroSubtitle || '';
+    document.getElementById('cfg-intro-title').value = config.introTitle || '';
+    document.getElementById('cfg-intro-text').value = config.introText || '';
+    document.getElementById('cfg-intro-footer').value = config.introFooter || '';
 }
 
 // Modalities management in Admin tab
