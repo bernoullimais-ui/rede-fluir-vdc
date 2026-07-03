@@ -687,25 +687,30 @@ async function loadAdminDashboard() {
             e.preventDefault();
             const config = await getAppConfigAsync();
             
-            config.whatsapp = document.getElementById('cfg-whatsapp').value.trim();
-            config.address = document.getElementById('cfg-address').value.trim();
-            config.mapsLink = document.getElementById('cfg-maps').value.trim();
-            config.instagram = document.getElementById('cfg-instagram').value.trim();
-            config.facebook = document.getElementById('cfg-facebook').value.trim();
-            config.youtube = document.getElementById('cfg-youtube').value.trim();
-            config.linkedin = document.getElementById('cfg-linkedin').value.trim();
+            const getVal = (id, defaultVal = '') => {
+                const el = document.getElementById(id);
+                return el ? el.value.trim() : defaultVal;
+            };
+
+            config.whatsapp = getVal('cfg-whatsapp', config.whatsapp);
+            config.address = getVal('cfg-address', config.address);
+            config.mapsLink = getVal('cfg-maps', config.mapsLink);
+            config.instagram = getVal('cfg-instagram', config.instagram);
+            config.facebook = getVal('cfg-facebook', config.facebook);
+            config.youtube = getVal('cfg-youtube', config.youtube);
+            config.linkedin = getVal('cfg-linkedin', config.linkedin);
             
             // Novos campos de customização
-            config.logoText = document.getElementById('cfg-logo-text').value.trim();
-            config.logoImage = document.getElementById('cfg-logo-image').value.trim();
-            config.heroImage = document.getElementById('cfg-hero-image').value.trim();
-            config.heroTitle = document.getElementById('cfg-hero-title').value.trim();
-            config.heroSubtitle = document.getElementById('cfg-hero-subtitle').value.trim();
-            config.introTitle = document.getElementById('cfg-intro-title').value.trim();
-            config.introText = document.getElementById('cfg-intro-text').value.trim();
-            config.introFooter = document.getElementById('cfg-intro-footer').value.trim();
+            config.logoText = getVal('cfg-logo-text', config.logoText);
+            config.logoImage = getVal('cfg-logo-image', config.logoImage);
+            config.heroImage = getVal('cfg-hero-image', config.heroImage);
+            config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
+            config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
+            config.introTitle = getVal('cfg-intro-title', config.introTitle);
+            config.introText = getVal('cfg-intro-text', config.introText);
+            config.introFooter = getVal('cfg-intro-footer', config.introFooter);
             
-            const newPass = document.getElementById('cfg-password').value.trim();
+            const newPass = getVal('cfg-password');
             if (newPass) {
                 config.adminPassword = newPass;
             }
@@ -976,24 +981,30 @@ function getStatusClass(status) {
 // Load config form inputs in Admin
 async function loadConfigForm() {
     const config = await getAppConfigAsync();
-    document.getElementById('cfg-whatsapp').value = config.whatsapp;
-    document.getElementById('cfg-address').value = config.address;
-    document.getElementById('cfg-maps').value = config.mapsLink;
-    document.getElementById('cfg-instagram').value = config.instagram;
-    document.getElementById('cfg-facebook').value = config.facebook;
-    document.getElementById('cfg-youtube').value = config.youtube;
-    document.getElementById('cfg-linkedin').value = config.linkedin;
-    document.getElementById('cfg-password').value = ''; // Leave password empty for security, only overwrite if typed
     
-    // Carregar novos campos de customização
-    document.getElementById('cfg-logo-text').value = config.logoText || '';
-    document.getElementById('cfg-logo-image').value = config.logoImage || '';
-    document.getElementById('cfg-hero-image').value = config.heroImage || '';
-    document.getElementById('cfg-hero-title').value = config.heroTitle || '';
-    document.getElementById('cfg-hero-subtitle').value = config.heroSubtitle || '';
-    document.getElementById('cfg-intro-title').value = config.introTitle || '';
-    document.getElementById('cfg-intro-text').value = config.introText || '';
-    document.getElementById('cfg-intro-footer').value = config.introFooter || '';
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+
+    setVal('cfg-whatsapp', config.whatsapp || '');
+    setVal('cfg-address', config.address || '');
+    setVal('cfg-maps', config.mapsLink || '');
+    setVal('cfg-instagram', config.instagram || '');
+    setVal('cfg-facebook', config.facebook || '');
+    setVal('cfg-youtube', config.youtube || '');
+    setVal('cfg-linkedin', config.linkedin || '');
+    setVal('cfg-password', '');
+    
+    // Carregar novos campos de customização com segurança
+    setVal('cfg-logo-text', config.logoText || '');
+    setVal('cfg-logo-image', config.logoImage || '');
+    setVal('cfg-hero-image', config.heroImage || '');
+    setVal('cfg-hero-title', config.heroTitle || '');
+    setVal('cfg-hero-subtitle', config.heroSubtitle || '');
+    setVal('cfg-intro-title', config.introTitle || '');
+    setVal('cfg-intro-text', config.introText || '');
+    setVal('cfg-intro-footer', config.introFooter || '');
 }
 
 // Modalities management in Admin tab
