@@ -299,6 +299,10 @@ function showToast(message) {
 async function initLandingPage() {
     const config = await getAppConfigAsync();
     
+    console.log("=== INICIALIZAÇÃO DA LANDING PAGE ===");
+    console.log("Origem das configurações da LP:", supabase ? "Supabase (Banco de Dados)" : "LocalStorage (Navegador)");
+    console.log("Dados carregados:", config);
+    
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
     
