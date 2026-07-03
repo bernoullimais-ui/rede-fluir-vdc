@@ -1,6 +1,6 @@
 // Supabase Connection Credentials
-const SUPABASE_URL = ''; // Cole aqui a URL do seu Supabase (ex: https://xxxx.supabase.co)
-const SUPABASE_ANON_KEY = ''; // Cole aqui a sua Anon Key do Supabase (chave pública)
+const SUPABASE_URL = 'https://bcuoekliuysopebkttbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjdW9la2xpdXlzb3BlYmt0dGJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMDIxNDksImV4cCI6MjA5ODY3ODE0OX0.y1smJKrR8yCVhi603ULOS2GVuwGmqCD7OOYUv4qkV4A';
 
 // Configurações Padrão de Fallback
 const DEFAULT_CONFIG = {
