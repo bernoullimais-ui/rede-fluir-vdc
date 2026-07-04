@@ -1331,5 +1331,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (domErr) {
         console.error("Erro na inicialização da página:", domErr);
         alert("Erro ao inicializar página: " + domErr.message);
+    } finally {
+        // Remover o loader com transição suave
+        const loader = document.getElementById('page-loader');
+        if (loader) {
+            loader.classList.add('fade-out');
+            setTimeout(() => {
+                if (loader.parentNode) {
+                    loader.parentNode.removeChild(loader);
+                }
+            }, 500);
+        }
     }
 });
