@@ -19,6 +19,7 @@ const DEFAULT_CONFIG = {
     btnTextColor: '#FFFFFF',
     btnHoverBgColor: '#0A43C3',
     btnHoverTextColor: '#FFFFFF',
+    contactInfo: 'Você também pode nos chamar no WhatsApp para agendar uma aula experimental por apenas R$ 10,00.',
     heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
@@ -106,6 +107,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.btnTextColor = configData.btn_text_color !== undefined && configData.btn_text_color !== null ? configData.btn_text_color : finalConfig.btnTextColor;
                 finalConfig.btnHoverBgColor = configData.btn_hover_bg_color !== undefined && configData.btn_hover_bg_color !== null ? configData.btn_hover_bg_color : finalConfig.btnHoverBgColor;
                 finalConfig.btnHoverTextColor = configData.btn_hover_text_color !== undefined && configData.btn_hover_text_color !== null ? configData.btn_hover_text_color : finalConfig.btnHoverTextColor;
+                finalConfig.contactInfo = configData.contact_info !== undefined && configData.contact_info !== null ? configData.contact_info : finalConfig.contactInfo;
                 finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
@@ -136,7 +138,8 @@ async function getAppConfigAsync(forceRefresh = false) {
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle,
                     intro_title: DEFAULT_CONFIG.introTitle,
                     intro_text: DEFAULT_CONFIG.introText,
-                    intro_footer: DEFAULT_CONFIG.introFooter
+                    intro_footer: DEFAULT_CONFIG.introFooter,
+                    contact_info: DEFAULT_CONFIG.contactInfo
                 });
             }
 
@@ -247,7 +250,8 @@ async function saveAppConfigAsync(config) {
                     hero_subtitle: config.heroSubtitle,
                     intro_title: config.introTitle,
                     intro_text: config.introText,
-                    intro_footer: config.introFooter
+                    intro_footer: config.introFooter,
+                    contact_info: config.contactInfo
                 });
 
             if (configError) throw configError;
@@ -483,6 +487,12 @@ async function initLandingPage() {
     document.querySelectorAll('.whatsapp-url').forEach(el => {
         el.href = whatsappLink;
     });
+
+    // Update Contact section footer text dynamically
+    const vipInfoBox = document.getElementById('contact-info-text');
+    if (vipInfoBox && config.contactInfo) {
+        vipInfoBox.innerHTML = config.contactInfo.replace(/WhatsApp/g, `<a href="${whatsappLink}" class="whatsapp-url" target="_blank">WhatsApp</a>`);
+    }
     
     const addressElement = document.getElementById('address-text');
     if (addressElement) {
@@ -737,6 +747,7 @@ async function loadAdminDashboard() {
             config.btnTextColor = getVal('cfg-btn-text', config.btnTextColor);
             config.btnHoverBgColor = getVal('cfg-btn-hover-bg', config.btnHoverBgColor);
             config.btnHoverTextColor = getVal('cfg-btn-hover-text', config.btnHoverTextColor);
+            config.contactInfo = getVal('cfg-contact-info', config.contactInfo);
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -1038,6 +1049,7 @@ async function loadConfigForm() {
     setVal('cfg-btn-text', config.btnTextColor || '#FFFFFF');
     setVal('cfg-btn-hover-bg', config.btnHoverBgColor || '#0A43C3');
     setVal('cfg-btn-hover-text', config.btnHoverTextColor || '#FFFFFF');
+    setVal('cfg-contact-info', config.contactInfo || '');
     setVal('cfg-hero-image', config.heroImage || '');
     setVal('cfg-hero-title', config.heroTitle || '');
     setVal('cfg-hero-subtitle', config.heroSubtitle || '');
