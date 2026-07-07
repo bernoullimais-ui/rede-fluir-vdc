@@ -198,9 +198,8 @@ img {
     text-shadow: 0 0 10px rgba(255,255,255,0.3);
 }
 
-/* --- HERO SECTION --- */
 .hero {
-    background: linear-gradient(135deg, rgba(0, 115, 247, 0.8) 0%, rgba(0, 71, 168, 0.9) 100%), var(--hero-bg, url('assets/hero_woman.jpg')) center/cover no-repeat;
+    background: var(--hero-bg, url('assets/hero_woman.jpg')) center/cover no-repeat;
     min-height: 90vh;
     padding-top: 160px;
     padding-bottom: 120px;
