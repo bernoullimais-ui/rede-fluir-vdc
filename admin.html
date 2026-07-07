@@ -282,6 +282,71 @@
                     </div>
 
                     <div class="admin-card">
+                        <div class="admin-card-title">Tipografia e Cores de Textos (Tema)</div>
+                        
+                        <!-- Hero Title Customization -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Título do Hero</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-hero-title-size">Tamanho da Fonte (px)</label>
+                                <input type="number" class="admin-control" id="cfg-hero-title-size" min="20" max="150" placeholder="Ex: 72" required>
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-hero-title-weight">Espessura (Weight)</label>
+                                <select class="admin-control" id="cfg-hero-title-weight" style="padding: 10px;">
+                                    <option value="300">300 - Fino</option>
+                                    <option value="400">400 - Regular</option>
+                                    <option value="500">500 - Médio</option>
+                                    <option value="600">600 - Semi-Negrito</option>
+                                    <option value="700">700 - Negrito</option>
+                                    <option value="800">800 - Extra-Negrito</option>
+                                </select>
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-hero-title-color">Cor da Fonte</label>
+                                <input type="color" class="admin-control" id="cfg-hero-title-color" style="height: 45px; padding: 4px; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <!-- Section Titles Customization -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Títulos das Seções</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-section-title-size">Tamanho da Fonte (px)</label>
+                                <input type="number" class="admin-control" id="cfg-section-title-size" min="15" max="100" placeholder="Ex: 40" required>
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-section-title-weight">Espessura (Weight)</label>
+                                <select class="admin-control" id="cfg-section-title-weight" style="padding: 10px;">
+                                    <option value="300">300 - Fino</option>
+                                    <option value="400">400 - Regular</option>
+                                    <option value="500">500 - Médio</option>
+                                    <option value="600">600 - Semi-Negrito</option>
+                                    <option value="700">700 - Negrito</option>
+                                    <option value="800">800 - Extra-Negrito</option>
+                                </select>
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-section-title-color">Cor da Fonte</label>
+                                <input type="color" class="admin-control" id="cfg-section-title-color" style="height: 45px; padding: 4px; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <!-- Body Texts Customization -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Textos do Corpo (Páginas)</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-body-text-size">Tamanho da Fonte (px)</label>
+                                <input type="number" class="admin-control" id="cfg-body-text-size" min="10" max="40" placeholder="Ex: 18" required>
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-body-text-color">Cor da Fonte</label>
+                                <input type="color" class="admin-control" id="cfg-body-text-color" style="height: 45px; padding: 4px; cursor: pointer;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
                         <div class="admin-card-title">Segurança</div>
                         <div class="admin-form-group" style="max-width: 320px;">
                             <label class="admin-label" for="cfg-password">Nova Senha do Painel (Opcional)</label>

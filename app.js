@@ -20,6 +20,14 @@ const DEFAULT_CONFIG = {
     btnHoverBgColor: '#0A43C3',
     btnHoverTextColor: '#FFFFFF',
     contactInfo: 'Você também pode nos chamar no WhatsApp para agendar uma aula experimental por apenas R$ 10,00.',
+    heroTitleSize: 72,
+    heroTitleColor: '#FFFFFF',
+    heroTitleWeight: '800',
+    sectionTitleSize: 40,
+    sectionTitleColor: '#0A43C3',
+    sectionTitleWeight: '700',
+    bodyTextSize: 18,
+    bodyTextColor: '#334155',
     heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
@@ -108,6 +116,14 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.btnHoverBgColor = configData.btn_hover_bg_color !== undefined && configData.btn_hover_bg_color !== null ? configData.btn_hover_bg_color : finalConfig.btnHoverBgColor;
                 finalConfig.btnHoverTextColor = configData.btn_hover_text_color !== undefined && configData.btn_hover_text_color !== null ? configData.btn_hover_text_color : finalConfig.btnHoverTextColor;
                 finalConfig.contactInfo = configData.contact_info !== undefined && configData.contact_info !== null ? configData.contact_info : finalConfig.contactInfo;
+                finalConfig.heroTitleSize = configData.hero_title_size !== undefined && configData.hero_title_size !== null ? parseInt(configData.hero_title_size, 10) : finalConfig.heroTitleSize;
+                finalConfig.heroTitleColor = configData.hero_title_color !== undefined && configData.hero_title_color !== null ? configData.hero_title_color : finalConfig.heroTitleColor;
+                finalConfig.heroTitleWeight = configData.hero_title_weight !== undefined && configData.hero_title_weight !== null ? configData.hero_title_weight : finalConfig.heroTitleWeight;
+                finalConfig.sectionTitleSize = configData.section_title_size !== undefined && configData.section_title_size !== null ? parseInt(configData.section_title_size, 10) : finalConfig.sectionTitleSize;
+                finalConfig.sectionTitleColor = configData.section_title_color !== undefined && configData.section_title_color !== null ? configData.section_title_color : finalConfig.sectionTitleColor;
+                finalConfig.sectionTitleWeight = configData.section_title_weight !== undefined && configData.section_title_weight !== null ? configData.section_title_weight : finalConfig.sectionTitleWeight;
+                finalConfig.bodyTextSize = configData.body_text_size !== undefined && configData.body_text_size !== null ? parseInt(configData.body_text_size, 10) : finalConfig.bodyTextSize;
+                finalConfig.bodyTextColor = configData.body_text_color !== undefined && configData.body_text_color !== null ? configData.body_text_color : finalConfig.bodyTextColor;
                 finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
@@ -139,7 +155,15 @@ async function getAppConfigAsync(forceRefresh = false) {
                     intro_title: DEFAULT_CONFIG.introTitle,
                     intro_text: DEFAULT_CONFIG.introText,
                     intro_footer: DEFAULT_CONFIG.introFooter,
-                    contact_info: DEFAULT_CONFIG.contactInfo
+                    contact_info: DEFAULT_CONFIG.contactInfo,
+                    hero_title_size: DEFAULT_CONFIG.heroTitleSize,
+                    hero_title_color: DEFAULT_CONFIG.heroTitleColor,
+                    hero_title_weight: DEFAULT_CONFIG.heroTitleWeight,
+                    section_title_size: DEFAULT_CONFIG.sectionTitleSize,
+                    section_title_color: DEFAULT_CONFIG.sectionTitleColor,
+                    section_title_weight: DEFAULT_CONFIG.sectionTitleWeight,
+                    body_text_size: DEFAULT_CONFIG.bodyTextSize,
+                    body_text_color: DEFAULT_CONFIG.bodyTextColor
                 });
             }
 
@@ -251,7 +275,15 @@ async function saveAppConfigAsync(config) {
                     intro_title: config.introTitle,
                     intro_text: config.introText,
                     intro_footer: config.introFooter,
-                    contact_info: config.contactInfo
+                    contact_info: config.contactInfo,
+                    hero_title_size: config.heroTitleSize,
+                    hero_title_color: config.heroTitleColor,
+                    hero_title_weight: config.heroTitleWeight,
+                    section_title_size: config.sectionTitleSize,
+                    section_title_color: config.sectionTitleColor,
+                    section_title_weight: config.sectionTitleWeight,
+                    body_text_size: config.bodyTextSize,
+                    body_text_color: config.bodyTextColor
                 });
 
             if (configError) throw configError;
@@ -480,6 +512,16 @@ async function initLandingPage() {
     if (config.btnTextColor) root.style.setProperty('--btn-text', config.btnTextColor);
     if (config.btnHoverBgColor) root.style.setProperty('--btn-hover-bg', config.btnHoverBgColor);
     if (config.btnHoverTextColor) root.style.setProperty('--btn-hover-text', config.btnHoverTextColor);
+
+    // Update Typography dynamically
+    if (config.heroTitleSize) root.style.setProperty('--hero-title-size', `${config.heroTitleSize}px`);
+    if (config.heroTitleColor) root.style.setProperty('--hero-title-color', config.heroTitleColor);
+    if (config.heroTitleWeight) root.style.setProperty('--hero-title-weight', config.heroTitleWeight);
+    if (config.sectionTitleSize) root.style.setProperty('--section-title-size', `${config.sectionTitleSize}px`);
+    if (config.sectionTitleColor) root.style.setProperty('--section-title-color', config.sectionTitleColor);
+    if (config.sectionTitleWeight) root.style.setProperty('--section-title-weight', config.sectionTitleWeight);
+    if (config.bodyTextSize) root.style.setProperty('--body-text-size', `${config.bodyTextSize}px`);
+    if (config.bodyTextColor) root.style.setProperty('--body-text-color', config.bodyTextColor);
 
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
@@ -748,6 +790,14 @@ async function loadAdminDashboard() {
             config.btnHoverBgColor = getVal('cfg-btn-hover-bg', config.btnHoverBgColor);
             config.btnHoverTextColor = getVal('cfg-btn-hover-text', config.btnHoverTextColor);
             config.contactInfo = getVal('cfg-contact-info', config.contactInfo);
+            config.heroTitleSize = parseInt(getVal('cfg-hero-title-size', '72'), 10) || 72;
+            config.heroTitleColor = getVal('cfg-hero-title-color', config.heroTitleColor);
+            config.heroTitleWeight = getVal('cfg-hero-title-weight', config.heroTitleWeight);
+            config.sectionTitleSize = parseInt(getVal('cfg-section-title-size', '40'), 10) || 40;
+            config.sectionTitleColor = getVal('cfg-section-title-color', config.sectionTitleColor);
+            config.sectionTitleWeight = getVal('cfg-section-title-weight', config.sectionTitleWeight);
+            config.bodyTextSize = parseInt(getVal('cfg-body-text-size', '18'), 10) || 18;
+            config.bodyTextColor = getVal('cfg-body-text-color', config.bodyTextColor);
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -1050,6 +1100,14 @@ async function loadConfigForm() {
     setVal('cfg-btn-hover-bg', config.btnHoverBgColor || '#0A43C3');
     setVal('cfg-btn-hover-text', config.btnHoverTextColor || '#FFFFFF');
     setVal('cfg-contact-info', config.contactInfo || '');
+    setVal('cfg-hero-title-size', config.heroTitleSize || 72);
+    setVal('cfg-hero-title-color', config.heroTitleColor || '#FFFFFF');
+    setVal('cfg-hero-title-weight', config.heroTitleWeight || '800');
+    setVal('cfg-section-title-size', config.sectionTitleSize || 40);
+    setVal('cfg-section-title-color', config.sectionTitleColor || '#0A43C3');
+    setVal('cfg-section-title-weight', config.sectionTitleWeight || '700');
+    setVal('cfg-body-text-size', config.bodyTextSize || 18);
+    setVal('cfg-body-text-color', config.bodyTextColor || '#334155');
     setVal('cfg-hero-image', config.heroImage || '');
     setVal('cfg-hero-title', config.heroTitle || '');
     setVal('cfg-hero-subtitle', config.heroSubtitle || '');
