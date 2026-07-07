@@ -15,6 +15,10 @@ const DEFAULT_CONFIG = {
     logoText: 'Fluir',
     logoImage: '',
     logoSize: 40,
+    btnBgColor: '#0073F7',
+    btnTextColor: '#FFFFFF',
+    btnHoverBgColor: '#0A43C3',
+    btnHoverTextColor: '#FFFFFF',
     heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
@@ -98,6 +102,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
                 finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
                 finalConfig.logoSize = configData.logo_size !== undefined && configData.logo_size !== null ? parseInt(configData.logo_size, 10) : finalConfig.logoSize;
+                finalConfig.btnBgColor = configData.btn_bg_color !== undefined && configData.btn_bg_color !== null ? configData.btn_bg_color : finalConfig.btnBgColor;
+                finalConfig.btnTextColor = configData.btn_text_color !== undefined && configData.btn_text_color !== null ? configData.btn_text_color : finalConfig.btnTextColor;
+                finalConfig.btnHoverBgColor = configData.btn_hover_bg_color !== undefined && configData.btn_hover_bg_color !== null ? configData.btn_hover_bg_color : finalConfig.btnHoverBgColor;
+                finalConfig.btnHoverTextColor = configData.btn_hover_text_color !== undefined && configData.btn_hover_text_color !== null ? configData.btn_hover_text_color : finalConfig.btnHoverTextColor;
                 finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
@@ -119,6 +127,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                     logo_text: DEFAULT_CONFIG.logoText,
                     logo_image: DEFAULT_CONFIG.logoImage,
                     logo_size: DEFAULT_CONFIG.logoSize,
+                    btn_bg_color: DEFAULT_CONFIG.btnBgColor,
+                    btn_text_color: DEFAULT_CONFIG.btnTextColor,
+                    btn_hover_bg_color: DEFAULT_CONFIG.btnHoverBgColor,
+                    btn_hover_text_color: DEFAULT_CONFIG.btnHoverTextColor,
                     hero_image: DEFAULT_CONFIG.heroImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle,
@@ -226,6 +238,10 @@ async function saveAppConfigAsync(config) {
                     logo_text: config.logoText,
                     logo_image: config.logoImage,
                     logo_size: config.logoSize,
+                    btn_bg_color: config.btnBgColor,
+                    btn_text_color: config.btnTextColor,
+                    btn_hover_bg_color: config.btnHoverBgColor,
+                    btn_hover_text_color: config.btnHoverTextColor,
                     hero_image: config.heroImage,
                     hero_title: config.heroTitle,
                     hero_subtitle: config.heroSubtitle,
@@ -453,6 +469,13 @@ async function initLandingPage() {
     if (introFooter && config.introFooter) {
         introFooter.textContent = config.introFooter;
     }
+
+    // Update Button Colors dynamically
+    const root = document.documentElement;
+    if (config.btnBgColor) root.style.setProperty('--btn-bg', config.btnBgColor);
+    if (config.btnTextColor) root.style.setProperty('--btn-text', config.btnTextColor);
+    if (config.btnHoverBgColor) root.style.setProperty('--btn-hover-bg', config.btnHoverBgColor);
+    if (config.btnHoverTextColor) root.style.setProperty('--btn-hover-text', config.btnHoverTextColor);
 
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
@@ -710,6 +733,10 @@ async function loadAdminDashboard() {
             config.logoText = getVal('cfg-logo-text', config.logoText);
             config.logoImage = getVal('cfg-logo-image', config.logoImage);
             config.logoSize = parseInt(getVal('cfg-logo-size', '40'), 10) || 40;
+            config.btnBgColor = getVal('cfg-btn-bg', config.btnBgColor);
+            config.btnTextColor = getVal('cfg-btn-text', config.btnTextColor);
+            config.btnHoverBgColor = getVal('cfg-btn-hover-bg', config.btnHoverBgColor);
+            config.btnHoverTextColor = getVal('cfg-btn-hover-text', config.btnHoverTextColor);
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -1007,6 +1034,10 @@ async function loadConfigForm() {
     setVal('cfg-logo-text', config.logoText || '');
     setVal('cfg-logo-image', config.logoImage || '');
     setVal('cfg-logo-size', config.logoSize || 40);
+    setVal('cfg-btn-bg', config.btnBgColor || '#0073F7');
+    setVal('cfg-btn-text', config.btnTextColor || '#FFFFFF');
+    setVal('cfg-btn-hover-bg', config.btnHoverBgColor || '#0A43C3');
+    setVal('cfg-btn-hover-text', config.btnHoverTextColor || '#FFFFFF');
     setVal('cfg-hero-image', config.heroImage || '');
     setVal('cfg-hero-title', config.heroTitle || '');
     setVal('cfg-hero-subtitle', config.heroSubtitle || '');
@@ -1027,11 +1058,15 @@ async function renderModalitiesList() {
         div.className = 'admin-modality-item';
         div.innerHTML = `
             <div class="admin-modality-header">
-                <span class="admin-modality-name">${mod.name}</span>
+                <span class="admin-modality-name" id="modality-title-text-${mod.id}">${mod.name}</span>
                 <label class="checkbox-label">
                     <input type="checkbox" class="checkbox-control modality-toggle" data-id="${mod.id}" ${mod.active ? 'checked' : ''}>
                     Ativa na LP
                 </label>
+            </div>
+            <div class="admin-form-group">
+                <label class="admin-label">Nome da Modalidade</label>
+                <input type="text" class="admin-control modality-name-input" data-id="${mod.id}" value="${mod.name}">
             </div>
             <div class="admin-form-group" style="margin-bottom: 0;">
                 <label class="admin-label">Imagem de Fundo</label>
@@ -1048,6 +1083,17 @@ async function renderModalitiesList() {
             </div>
         `;
         listDiv.appendChild(div);
+
+        // Sincronizar título ao digitar nome
+        const nameInput = div.querySelector('.modality-name-input');
+        if (nameInput) {
+            nameInput.addEventListener('input', (e) => {
+                const titleSpan = document.getElementById(`modality-title-text-${mod.id}`);
+                if (titleSpan) {
+                    titleSpan.textContent = e.target.value || mod.id;
+                }
+            });
+        }
     });
 
     // Registrar ouvintes para os inputs de arquivo
@@ -1128,9 +1174,11 @@ async function renderModalitiesList() {
             config.modalities = config.modalities.map(mod => {
                 const toggle = listDiv.querySelector(`.modality-toggle[data-id="${mod.id}"]`);
                 const imgInput = listDiv.querySelector(`.modality-image-input[data-id="${mod.id}"]`);
+                const nameInput = listDiv.querySelector(`.modality-name-input[data-id="${mod.id}"]`);
                 
                 return {
                     ...mod,
+                    name: nameInput ? nameInput.value.trim() : mod.name,
                     active: toggle ? toggle.checked : mod.active,
                     image: imgInput ? imgInput.value.trim() : mod.image
                 };
