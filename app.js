@@ -14,6 +14,7 @@ const DEFAULT_CONFIG = {
     adminPassword: 'admin123',
     logoText: 'Fluir',
     logoImage: '',
+    logoSize: 40,
     heroImage: 'assets/hero_woman.jpg',
     heroTitle: 'A vida\nacontece em\nmovimento.',
     heroSubtitle: 'Em breve, a maior e mais moderna rede de atividades aquáticas e Pilates da Bahia chega a Vitória da Conquista.',
@@ -96,6 +97,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 // Colunas de customização com fallback seguro caso o banco ainda não tenha sido alterado
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
                 finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
+                finalConfig.logoSize = configData.logo_size !== undefined && configData.logo_size !== null ? parseInt(configData.logo_size, 10) : finalConfig.logoSize;
                 finalConfig.heroImage = configData.hero_image !== undefined && configData.hero_image !== null ? configData.hero_image : finalConfig.heroImage;
                 finalConfig.heroTitle = configData.hero_title !== undefined && configData.hero_title !== null ? configData.hero_title : finalConfig.heroTitle;
                 finalConfig.heroSubtitle = configData.hero_subtitle !== undefined && configData.hero_subtitle !== null ? configData.hero_subtitle : finalConfig.heroSubtitle;
@@ -116,6 +118,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                     admin_password: DEFAULT_CONFIG.adminPassword,
                     logo_text: DEFAULT_CONFIG.logoText,
                     logo_image: DEFAULT_CONFIG.logoImage,
+                    logo_size: DEFAULT_CONFIG.logoSize,
                     hero_image: DEFAULT_CONFIG.heroImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle,
@@ -222,6 +225,7 @@ async function saveAppConfigAsync(config) {
                     admin_password: config.adminPassword,
                     logo_text: config.logoText,
                     logo_image: config.logoImage,
+                    logo_size: config.logoSize,
                     hero_image: config.heroImage,
                     hero_title: config.heroTitle,
                     hero_subtitle: config.heroSubtitle,
@@ -385,9 +389,11 @@ async function initLandingPage() {
     const logoContainer = document.getElementById('logo-container');
     if (logoContainer) {
         if (config.logoImage && config.logoImage.trim() !== '') {
-            logoContainer.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: 40px; width: auto; object-fit: contain; display: block;">`;
+            const logoHeight = config.logoSize || 40;
+            logoContainer.innerHTML = `<img src="${config.logoImage}" alt="Logo" style="max-height: ${logoHeight}px; width: auto; object-fit: contain; display: block;">`;
         } else if (config.logoText && config.logoText.trim() !== '' && config.logoText.trim().toLowerCase() !== 'default') {
-            logoContainer.innerHTML = `<span style="font-weight: 800; font-size: 1.6rem; letter-spacing: -0.5px; color: white;">${config.logoText}</span>`;
+            const logoHeight = config.logoSize || 40;
+            logoContainer.innerHTML = `<span style="font-weight: 800; font-size: ${logoHeight / 25}rem; letter-spacing: -0.5px; color: white;">${config.logoText}</span>`;
         } else {
             // Logo padrão SVG
             logoContainer.innerHTML = `
@@ -424,10 +430,10 @@ async function initLandingPage() {
         heroSubtitle.textContent = config.heroSubtitle;
     }
 
-    // Update Hero Image dynamically
-    const heroImage = document.getElementById('hero-image');
-    if (heroImage && config.heroImage && config.heroImage.trim() !== '') {
-        heroImage.src = config.heroImage;
+    // Update Hero Image dynamically as background
+    const heroSection = document.querySelector('.hero');
+    if (heroSection && config.heroImage && config.heroImage.trim() !== '') {
+        heroSection.style.setProperty('--hero-bg', `url('${config.heroImage}')`);
     }
 
     // Update Intro Section dynamically
@@ -703,6 +709,7 @@ async function loadAdminDashboard() {
             // Novos campos de customização
             config.logoText = getVal('cfg-logo-text', config.logoText);
             config.logoImage = getVal('cfg-logo-image', config.logoImage);
+            config.logoSize = parseInt(getVal('cfg-logo-size', '40'), 10) || 40;
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -999,6 +1006,7 @@ async function loadConfigForm() {
     // Carregar novos campos de customização com segurança
     setVal('cfg-logo-text', config.logoText || '');
     setVal('cfg-logo-image', config.logoImage || '');
+    setVal('cfg-logo-size', config.logoSize || 40);
     setVal('cfg-hero-image', config.heroImage || '');
     setVal('cfg-hero-title', config.heroTitle || '');
     setVal('cfg-hero-subtitle', config.heroSubtitle || '');

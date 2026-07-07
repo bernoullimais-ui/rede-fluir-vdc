@@ -108,6 +108,19 @@ img {
     box-shadow: var(--shadow-lg);
 }
 
+.btn-seja-fluir {
+    background-color: var(--white) !important;
+    color: var(--primary) !important;
+    transition: all 0.3s ease;
+}
+
+.btn-seja-fluir:hover {
+    background-color: #00d6f8 !important;
+    color: var(--white) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
 .btn-outline {
     background-color: transparent;
     border: 2px solid var(--white);
@@ -170,7 +183,7 @@ img {
 
 /* --- HERO SECTION --- */
 .hero {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, rgba(0, 115, 247, 0.8) 0%, rgba(0, 71, 168, 0.9) 100%), var(--hero-bg, url('assets/hero_woman.jpg')) center/cover no-repeat;
     min-height: 90vh;
     padding-top: 160px;
     padding-bottom: 120px;
@@ -194,7 +207,8 @@ img {
 
 .hero-grid {
     display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: 1fr;
+    max-width: 800px;
     gap: 48px;
     align-items: center;
 }
@@ -219,10 +233,7 @@ img {
 }
 
 .hero-image-wrapper {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    animation: fadeInRight 1.2s ease;
+    display: none !important;
 }
 
 .hero-image {
