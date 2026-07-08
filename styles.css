@@ -45,6 +45,10 @@
     
     --body-text-size: 18px;
     --body-text-color: #334155;
+
+    --btn-saiba-mais-color: #0073F7;
+    --btn-saiba-mais-size: 18px;
+    --btn-saiba-mais-weight: 700;
 }
 
 * {
@@ -350,6 +354,21 @@ img {
     font-weight: 700;
     color: var(--primary-dark);
     margin-top: 24px;
+}
+
+#btn-saiba-mais {
+    color: var(--btn-saiba-mais-color) !important;
+    font-size: var(--btn-saiba-mais-size) !important;
+    font-weight: var(--btn-saiba-mais-weight) !important;
+    text-decoration: underline;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 16px;
+    transition: var(--transition);
+}
+
+#btn-saiba-mais:hover {
+    opacity: 0.8;
 }
 
 /* --- MODALIDADES --- */

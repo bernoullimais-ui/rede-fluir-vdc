@@ -31,6 +31,9 @@ const DEFAULT_CONFIG = {
     btnHeaderText: 'Seja Fluir',
     btnHeroText: 'Fale com a gente',
     btnFormText: 'Quero me cadastrar agora',
+    btnSaibaMaisColor: '#0073F7',
+    btnSaibaMaisSize: 18,
+    btnSaibaMaisWeight: '700',
     heroTitleSize: 72,
     heroTitleColor: '#FFFFFF',
     heroTitleWeight: '800',
@@ -152,6 +155,9 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.introTitle = configData.intro_title !== undefined && configData.intro_title !== null ? configData.intro_title : finalConfig.introTitle;
                 finalConfig.introText = configData.intro_text !== undefined && configData.intro_text !== null ? configData.intro_text : finalConfig.introText;
                 finalConfig.introFooter = configData.intro_footer !== undefined && configData.intro_footer !== null ? configData.intro_footer : finalConfig.introFooter;
+                finalConfig.btnSaibaMaisColor = configData.btn_saiba_mais_color !== undefined && configData.btn_saiba_mais_color !== null ? configData.btn_saiba_mais_color : finalConfig.btnSaibaMaisColor;
+                finalConfig.btnSaibaMaisSize = configData.btn_saiba_mais_size !== undefined && configData.btn_saiba_mais_size !== null ? parseInt(configData.btn_saiba_mais_size, 10) : finalConfig.btnSaibaMaisSize;
+                finalConfig.btnSaibaMaisWeight = configData.btn_saiba_mais_weight !== undefined && configData.btn_saiba_mais_weight !== null ? configData.btn_saiba_mais_weight : finalConfig.btnSaibaMaisWeight;
             } else {
                 // Inicializar com dados padrão se a tabela estiver vazia
                 await supabaseClient.from('config').insert({
@@ -196,7 +202,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                     body_text_color: DEFAULT_CONFIG.bodyTextColor,
                     btn_header_text: DEFAULT_CONFIG.btnHeaderText,
                     btn_hero_text: DEFAULT_CONFIG.btnHeroText,
-                    btn_form_text: DEFAULT_CONFIG.btnFormText
+                    btn_form_text: DEFAULT_CONFIG.btnFormText,
+                    btn_saiba_mais_color: DEFAULT_CONFIG.btnSaibaMaisColor,
+                    btn_saiba_mais_size: DEFAULT_CONFIG.btnSaibaMaisSize,
+                    btn_saiba_mais_weight: DEFAULT_CONFIG.btnSaibaMaisWeight
                 });
             }
 
@@ -327,7 +336,10 @@ async function saveAppConfigAsync(config) {
                     body_text_color: config.bodyTextColor,
                     btn_header_text: config.btnHeaderText,
                     btn_hero_text: config.btnHeroText,
-                    btn_form_text: config.btnFormText
+                    btn_form_text: config.btnFormText,
+                    btn_saiba_mais_color: config.btnSaibaMaisColor,
+                    btn_saiba_mais_size: config.btnSaibaMaisSize,
+                    btn_saiba_mais_weight: config.btnSaibaMaisWeight
                 });
 
             if (configError) throw configError;
@@ -538,6 +550,7 @@ async function initLandingPage() {
         introTitle.textContent = config.introTitle;
     }
     const introParagraphs = document.getElementById('intro-paragraphs');
+    const btnSaibaMais = document.getElementById('btn-saiba-mais');
     if (introParagraphs && config.introText) {
         const paragraphs = config.introText.split('\n').filter(p => p.trim() !== '');
         if (paragraphs.length > 2) {
@@ -549,31 +562,42 @@ async function initLandingPage() {
                 <div id="intro-more-paragraphs" style="display: none; margin-top: 0;">
                     ${remaining}
                 </div>
-                <a href="javascript:void(0);" id="btn-saiba-mais" style="color: var(--primary-dark); font-weight: 700; text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 8px;">Saiba mais</a>
             `;
             
-            const btnSaibaMais = document.getElementById('btn-saiba-mais');
-            const moreParagraphs = document.getElementById('intro-more-paragraphs');
-            if (btnSaibaMais && moreParagraphs) {
-                btnSaibaMais.addEventListener('click', () => {
-                    if (moreParagraphs.style.display === 'none') {
-                        moreParagraphs.style.display = 'block';
-                        moreParagraphs.style.animation = 'fadeInUp 0.4s ease';
-                        btnSaibaMais.textContent = 'Ver menos';
-                    } else {
-                        moreParagraphs.style.display = 'none';
-                        btnSaibaMais.textContent = 'Saiba mais';
+            if (btnSaibaMais) {
+                btnSaibaMais.style.display = 'inline-block';
+                btnSaibaMais.textContent = 'Saiba mais';
+                
+                const newBtn = btnSaibaMais.cloneNode(true);
+                btnSaibaMais.parentNode.replaceChild(newBtn, btnSaibaMais);
+                
+                newBtn.addEventListener('click', () => {
+                    const moreParagraphs = document.getElementById('intro-more-paragraphs');
+                    if (moreParagraphs) {
+                        if (moreParagraphs.style.display === 'none') {
+                            moreParagraphs.style.display = 'block';
+                            moreParagraphs.style.animation = 'fadeInUp 0.4s ease';
+                            newBtn.textContent = 'Ver menos';
+                        } else {
+                            moreParagraphs.style.display = 'none';
+                            newBtn.textContent = 'Saiba mais';
+                        }
                     }
                 });
             }
         } else {
             introParagraphs.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+            if (btnSaibaMais) btnSaibaMais.style.display = 'none';
         }
     }
     const introFooter = document.getElementById('intro-footer');
     if (introFooter && config.introFooter) {
-        introFooter.textContent = config.introFooter;
+        introFooter.innerHTML = config.introFooter;
     }
+
+    if (config.btnSaibaMaisColor) root.style.setProperty('--btn-saiba-mais-color', config.btnSaibaMaisColor);
+    if (config.btnSaibaMaisSize) root.style.setProperty('--btn-saiba-mais-size', `${config.btnSaibaMaisSize}px`);
+    if (config.btnSaibaMaisWeight) root.style.setProperty('--btn-saiba-mais-weight', config.btnSaibaMaisWeight);
 
     // Update Button Colors dynamically
     const root = document.documentElement;
@@ -922,6 +946,9 @@ async function loadAdminDashboard() {
             config.btnHeaderText = getVal('cfg-btn-header-text', config.btnHeaderText);
             config.btnHeroText = getVal('cfg-btn-hero-text', config.btnHeroText);
             config.btnFormText = getVal('cfg-btn-form-text', config.btnFormText);
+            config.btnSaibaMaisColor = getVal('cfg-btn-saiba-mais-color', config.btnSaibaMaisColor);
+            config.btnSaibaMaisSize = parseInt(getVal('cfg-btn-saiba-mais-size', '18'), 10) || 18;
+            config.btnSaibaMaisWeight = getVal('cfg-btn-saiba-mais-weight', config.btnSaibaMaisWeight);
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -1251,6 +1278,9 @@ async function loadConfigForm() {
     setVal('cfg-intro-title', config.introTitle || '');
     setVal('cfg-intro-text', config.introText || '');
     setVal('cfg-intro-footer', config.introFooter || '');
+    setVal('cfg-btn-saiba-mais-size', config.btnSaibaMaisSize || 18);
+    setVal('cfg-btn-saiba-mais-color', config.btnSaibaMaisColor || '#0073F7');
+    setVal('cfg-btn-saiba-mais-weight', config.btnSaibaMaisWeight || '700');
 }
 
 // Modalities management in Admin tab
