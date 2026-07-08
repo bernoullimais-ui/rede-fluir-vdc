@@ -595,12 +595,12 @@ async function initLandingPage() {
         introFooter.innerHTML = config.introFooter;
     }
 
+    // Update Button Colors dynamically
+    const root = document.documentElement;
+
     if (config.btnSaibaMaisColor) root.style.setProperty('--btn-saiba-mais-color', config.btnSaibaMaisColor);
     if (config.btnSaibaMaisSize) root.style.setProperty('--btn-saiba-mais-size', `${config.btnSaibaMaisSize}px`);
     if (config.btnSaibaMaisWeight) root.style.setProperty('--btn-saiba-mais-weight', config.btnSaibaMaisWeight);
-
-    // Update Button Colors dynamically
-    const root = document.documentElement;
     if (config.btnHeaderBg) root.style.setProperty('--btn-header-bg', config.btnHeaderBg);
     if (config.btnHeaderTextColor) root.style.setProperty('--btn-header-text', config.btnHeaderTextColor);
     if (config.btnHeaderHoverBg) root.style.setProperty('--btn-header-hover-bg', config.btnHeaderHoverBg);
