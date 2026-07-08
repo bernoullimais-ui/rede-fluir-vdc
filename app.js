@@ -523,7 +523,7 @@ async function initLandingPage() {
     }
     const heroSubtitle = document.getElementById('hero-subtitle');
     if (heroSubtitle && config.heroSubtitle) {
-        heroSubtitle.textContent = config.heroSubtitle;
+        heroSubtitle.innerHTML = config.heroSubtitle;
     }
 
     // Update Hero Image dynamically as background
@@ -539,11 +539,36 @@ async function initLandingPage() {
     }
     const introParagraphs = document.getElementById('intro-paragraphs');
     if (introParagraphs && config.introText) {
-        introParagraphs.innerHTML = config.introText
-            .split('\n')
-            .filter(p => p.trim() !== '')
-            .map(p => `<p>${p.trim()}</p>`)
-            .join('');
+        const paragraphs = config.introText.split('\n').filter(p => p.trim() !== '');
+        if (paragraphs.length > 2) {
+            const firstTwo = paragraphs.slice(0, 2).map(p => `<p>${p.trim()}</p>`).join('');
+            const remaining = paragraphs.slice(2).map(p => `<p>${p.trim()}</p>`).join('');
+            
+            introParagraphs.innerHTML = `
+                ${firstTwo}
+                <div id="intro-more-paragraphs" style="display: none; margin-top: 0;">
+                    ${remaining}
+                </div>
+                <a href="javascript:void(0);" id="btn-saiba-mais" style="color: var(--primary-dark); font-weight: 700; text-decoration: underline; cursor: pointer; display: inline-block; margin-top: 8px;">Saiba mais</a>
+            `;
+            
+            const btnSaibaMais = document.getElementById('btn-saiba-mais');
+            const moreParagraphs = document.getElementById('intro-more-paragraphs');
+            if (btnSaibaMais && moreParagraphs) {
+                btnSaibaMais.addEventListener('click', () => {
+                    if (moreParagraphs.style.display === 'none') {
+                        moreParagraphs.style.display = 'block';
+                        moreParagraphs.style.animation = 'fadeInUp 0.4s ease';
+                        btnSaibaMais.textContent = 'Ver menos';
+                    } else {
+                        moreParagraphs.style.display = 'none';
+                        btnSaibaMais.textContent = 'Saiba mais';
+                    }
+                });
+            }
+        } else {
+            introParagraphs.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join('');
+        }
     }
     const introFooter = document.getElementById('intro-footer');
     if (introFooter && config.introFooter) {
