@@ -160,6 +160,25 @@ img {
     padding: 24px 0;
 }
 
+.hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 110;
+    padding: 8px;
+}
+
+.hamburger-bar {
+    width: 25px;
+    height: 3px;
+    background-color: var(--white);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
 .header-container {
     display: flex;
     justify-content: space-between;
@@ -1087,22 +1106,53 @@ select.form-control {
     }
     .header {
         position: relative;
-        background-color: var(--primary);
+        background-color: #0A43C3;
         padding: 16px 0;
     }
     .header-container {
-        flex-direction: column;
-        gap: 16px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0;
+        width: 100%;
+    }
+    .hamburger-btn {
+        display: flex;
     }
     .nav {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background-color: rgba(10, 67, 195, 0.98);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        padding: 24px;
+        flex-direction: column;
+        align-items: center;
         gap: 20px;
-        flex-wrap: wrap;
-        justify-content: center;
+        z-index: 100;
+    }
+    .nav.active {
+        display: flex;
+    }
+    .hamburger-btn.active .hamburger-bar:nth-child(1) {
+        transform: translateY(9px) rotate(45deg);
+    }
+    .hamburger-btn.active .hamburger-bar:nth-child(2) {
+        opacity: 0;
+    }
+    .hamburger-btn.active .hamburger-bar:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
     }
     .hero {
         padding-top: 40px;
         min-height: auto;
         padding-bottom: 80px;
+        background: linear-gradient(135deg, #0A43C3 0%, #052263 100%) !important;
+    }
+    .hero-image-wrapper {
+        display: none !important;
     }
     .hero-grid {
         grid-template-columns: 1fr;
@@ -1118,8 +1168,24 @@ select.form-control {
     .hero-image {
         max-width: 320px;
     }
-    .espaco-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .modalidades-grid, .espaco-grid {
+        display: flex !important;
+        overflow-x: auto !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 8px 16px 24px !important;
+        gap: 16px !important;
+        margin-left: -20px !important;
+        margin-right: -20px !important;
+        scrollbar-width: none;
+    }
+    .modalidades-grid::-webkit-scrollbar, .espaco-grid::-webkit-scrollbar {
+        display: none;
+    }
+    .modalidade-card, .espaco-card {
+        flex: 0 0 280px !important;
+        scroll-snap-align: start !important;
+        margin-bottom: 0 !important;
     }
     .footer-grid {
         grid-template-columns: 1fr;

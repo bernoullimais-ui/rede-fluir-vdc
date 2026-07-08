@@ -20,6 +20,9 @@ const DEFAULT_CONFIG = {
     btnHoverBgColor: '#0A43C3',
     btnHoverTextColor: '#FFFFFF',
     contactInfo: 'Você também pode nos chamar no WhatsApp para agendar uma aula experimental por apenas R$ 10,00.',
+    btnHeaderText: 'Seja Fluir',
+    btnHeroText: 'Fale com a gente',
+    btnFormText: 'Quero me cadastrar agora',
     heroTitleSize: 72,
     heroTitleColor: '#FFFFFF',
     heroTitleWeight: '800',
@@ -116,6 +119,9 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.btnHoverBgColor = configData.btn_hover_bg_color !== undefined && configData.btn_hover_bg_color !== null ? configData.btn_hover_bg_color : finalConfig.btnHoverBgColor;
                 finalConfig.btnHoverTextColor = configData.btn_hover_text_color !== undefined && configData.btn_hover_text_color !== null ? configData.btn_hover_text_color : finalConfig.btnHoverTextColor;
                 finalConfig.contactInfo = configData.contact_info !== undefined && configData.contact_info !== null ? configData.contact_info : finalConfig.contactInfo;
+                finalConfig.btnHeaderText = configData.btn_header_text !== undefined && configData.btn_header_text !== null ? configData.btn_header_text : finalConfig.btnHeaderText;
+                finalConfig.btnHeroText = configData.btn_hero_text !== undefined && configData.btn_hero_text !== null ? configData.btn_hero_text : finalConfig.btnHeroText;
+                finalConfig.btnFormText = configData.btn_form_text !== undefined && configData.btn_form_text !== null ? configData.btn_form_text : finalConfig.btnFormText;
                 finalConfig.heroTitleSize = configData.hero_title_size !== undefined && configData.hero_title_size !== null ? parseInt(configData.hero_title_size, 10) : finalConfig.heroTitleSize;
                 finalConfig.heroTitleColor = configData.hero_title_color !== undefined && configData.hero_title_color !== null ? configData.hero_title_color : finalConfig.heroTitleColor;
                 finalConfig.heroTitleWeight = configData.hero_title_weight !== undefined && configData.hero_title_weight !== null ? configData.hero_title_weight : finalConfig.heroTitleWeight;
@@ -163,7 +169,10 @@ async function getAppConfigAsync(forceRefresh = false) {
                     section_title_color: DEFAULT_CONFIG.sectionTitleColor,
                     section_title_weight: DEFAULT_CONFIG.sectionTitleWeight,
                     body_text_size: DEFAULT_CONFIG.bodyTextSize,
-                    body_text_color: DEFAULT_CONFIG.bodyTextColor
+                    body_text_color: DEFAULT_CONFIG.bodyTextColor,
+                    btn_header_text: DEFAULT_CONFIG.btnHeaderText,
+                    btn_hero_text: DEFAULT_CONFIG.btnHeroText,
+                    btn_form_text: DEFAULT_CONFIG.btnFormText
                 });
             }
 
@@ -283,7 +292,10 @@ async function saveAppConfigAsync(config) {
                     section_title_color: config.sectionTitleColor,
                     section_title_weight: config.sectionTitleWeight,
                     body_text_size: config.bodyTextSize,
-                    body_text_color: config.bodyTextColor
+                    body_text_color: config.bodyTextColor,
+                    btn_header_text: config.btnHeaderText,
+                    btn_hero_text: config.btnHeroText,
+                    btn_form_text: config.btnFormText
                 });
 
             if (configError) throw configError;
@@ -522,6 +534,38 @@ async function initLandingPage() {
     if (config.sectionTitleWeight) root.style.setProperty('--section-title-weight', config.sectionTitleWeight);
     if (config.bodyTextSize) root.style.setProperty('--body-text-size', `${config.bodyTextSize}px`);
     if (config.bodyTextColor) root.style.setProperty('--body-text-color', config.bodyTextColor);
+
+    // Toggle active state on hamburger menu click
+    const menuToggle = document.getElementById('menu-toggle');
+    const mainNav = document.getElementById('main-nav');
+    
+    if (menuToggle && mainNav) {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuToggle.classList.toggle('active');
+            mainNav.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            menuToggle.classList.remove('active');
+            mainNav.classList.remove('active');
+        });
+
+        mainNav.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                mainNav.classList.remove('active');
+            });
+        });
+    }
+
+    // Update dynamic button texts
+    const btnHeader = document.getElementById('btn-header-text');
+    if (btnHeader && config.btnHeaderText) btnHeader.textContent = config.btnHeaderText;
+    const btnHero = document.getElementById('btn-hero-text');
+    if (btnHero && config.btnHeroText) btnHero.textContent = config.btnHeroText;
+    const btnForm = document.getElementById('btn-form-text');
+    if (btnForm && config.btnFormText) btnForm.textContent = config.btnFormText;
 
     // 1. Update Contact Links and Info
     const whatsappLink = `https://wa.me/${config.whatsapp.replace(/\D/g, '')}`;
@@ -798,6 +842,9 @@ async function loadAdminDashboard() {
             config.sectionTitleWeight = getVal('cfg-section-title-weight', config.sectionTitleWeight);
             config.bodyTextSize = parseInt(getVal('cfg-body-text-size', '18'), 10) || 18;
             config.bodyTextColor = getVal('cfg-body-text-color', config.bodyTextColor);
+            config.btnHeaderText = getVal('cfg-btn-header-text', config.btnHeaderText);
+            config.btnHeroText = getVal('cfg-btn-hero-text', config.btnHeroText);
+            config.btnFormText = getVal('cfg-btn-form-text', config.btnFormText);
             config.heroImage = getVal('cfg-hero-image', config.heroImage);
             config.heroTitle = getVal('cfg-hero-title', config.heroTitle);
             config.heroSubtitle = getVal('cfg-hero-subtitle', config.heroSubtitle);
@@ -1108,6 +1155,9 @@ async function loadConfigForm() {
     setVal('cfg-section-title-weight', config.sectionTitleWeight || '700');
     setVal('cfg-body-text-size', config.bodyTextSize || 18);
     setVal('cfg-body-text-color', config.bodyTextColor || '#334155');
+    setVal('cfg-btn-header-text', config.btnHeaderText || '');
+    setVal('cfg-btn-hero-text', config.btnHeroText || '');
+    setVal('cfg-btn-form-text', config.btnFormText || '');
     setVal('cfg-hero-image', config.heroImage || '');
     setVal('cfg-hero-title', config.heroTitle || '');
     setVal('cfg-hero-subtitle', config.heroSubtitle || '');
