@@ -15,10 +15,18 @@ const DEFAULT_CONFIG = {
     logoText: 'Fluir',
     logoImage: '',
     logoSize: 40,
-    btnBgColor: '#0073F7',
-    btnTextColor: '#FFFFFF',
-    btnHoverBgColor: '#0A43C3',
-    btnHoverTextColor: '#FFFFFF',
+    btnHeaderBg: '#FFFFFF',
+    btnHeaderTextColor: '#0073F7',
+    btnHeaderHoverBg: '#00d6f8',
+    btnHeaderHoverText: '#FFFFFF',
+    btnHeroBg: 'transparent',
+    btnHeroTextColor: '#FFFFFF',
+    btnHeroHoverBg: '#FFFFFF',
+    btnHeroHoverText: '#0073F7',
+    btnFormBg: '#00d6f8',
+    btnFormTextColor: '#0b2963',
+    btnFormHoverBg: '#FFFFFF',
+    btnFormHoverText: '#0b2963',
     contactInfo: 'Você também pode nos chamar no WhatsApp para agendar uma aula experimental por apenas R$ 10,00.',
     btnHeaderText: 'Seja Fluir',
     btnHeroText: 'Fale com a gente',
@@ -114,10 +122,18 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
                 finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
                 finalConfig.logoSize = configData.logo_size !== undefined && configData.logo_size !== null ? parseInt(configData.logo_size, 10) : finalConfig.logoSize;
-                finalConfig.btnBgColor = configData.btn_bg_color !== undefined && configData.btn_bg_color !== null ? configData.btn_bg_color : finalConfig.btnBgColor;
-                finalConfig.btnTextColor = configData.btn_text_color !== undefined && configData.btn_text_color !== null ? configData.btn_text_color : finalConfig.btnTextColor;
-                finalConfig.btnHoverBgColor = configData.btn_hover_bg_color !== undefined && configData.btn_hover_bg_color !== null ? configData.btn_hover_bg_color : finalConfig.btnHoverBgColor;
-                finalConfig.btnHoverTextColor = configData.btn_hover_text_color !== undefined && configData.btn_hover_text_color !== null ? configData.btn_hover_text_color : finalConfig.btnHoverTextColor;
+                finalConfig.btnHeaderBg = configData.btn_header_bg !== undefined && configData.btn_header_bg !== null ? configData.btn_header_bg : finalConfig.btnHeaderBg;
+                finalConfig.btnHeaderTextColor = configData.btn_header_text_color !== undefined && configData.btn_header_text_color !== null ? configData.btn_header_text_color : finalConfig.btnHeaderTextColor;
+                finalConfig.btnHeaderHoverBg = configData.btn_header_hover_bg !== undefined && configData.btn_header_hover_bg !== null ? configData.btn_header_hover_bg : finalConfig.btnHeaderHoverBg;
+                finalConfig.btnHeaderHoverText = configData.btn_header_hover_text !== undefined && configData.btn_header_hover_text !== null ? configData.btn_header_hover_text : finalConfig.btnHeaderHoverText;
+                finalConfig.btnHeroBg = configData.btn_hero_bg !== undefined && configData.btn_hero_bg !== null ? configData.btn_hero_bg : finalConfig.btnHeroBg;
+                finalConfig.btnHeroTextColor = configData.btn_hero_text_color !== undefined && configData.btn_hero_text_color !== null ? configData.btn_hero_text_color : finalConfig.btnHeroTextColor;
+                finalConfig.btnHeroHoverBg = configData.btn_hero_hover_bg !== undefined && configData.btn_hero_hover_bg !== null ? configData.btn_hero_hover_bg : finalConfig.btnHeroHoverBg;
+                finalConfig.btnHeroHoverText = configData.btn_hero_hover_text !== undefined && configData.btn_hero_hover_text !== null ? configData.btn_hero_hover_text : finalConfig.btnHeroHoverText;
+                finalConfig.btnFormBg = configData.btn_form_bg !== undefined && configData.btn_form_bg !== null ? configData.btn_form_bg : finalConfig.btnFormBg;
+                finalConfig.btnFormTextColor = configData.btn_form_text_color !== undefined && configData.btn_form_text_color !== null ? configData.btn_form_text_color : finalConfig.btnFormTextColor;
+                finalConfig.btnFormHoverBg = configData.btn_form_hover_bg !== undefined && configData.btn_form_hover_bg !== null ? configData.btn_form_hover_bg : finalConfig.btnFormHoverBg;
+                finalConfig.btnFormHoverText = configData.btn_form_hover_text !== undefined && configData.btn_form_hover_text !== null ? configData.btn_form_hover_text : finalConfig.btnFormHoverText;
                 finalConfig.contactInfo = configData.contact_info !== undefined && configData.contact_info !== null ? configData.contact_info : finalConfig.contactInfo;
                 finalConfig.btnHeaderText = configData.btn_header_text !== undefined && configData.btn_header_text !== null ? configData.btn_header_text : finalConfig.btnHeaderText;
                 finalConfig.btnHeroText = configData.btn_hero_text !== undefined && configData.btn_hero_text !== null ? configData.btn_hero_text : finalConfig.btnHeroText;
@@ -151,10 +167,18 @@ async function getAppConfigAsync(forceRefresh = false) {
                     logo_text: DEFAULT_CONFIG.logoText,
                     logo_image: DEFAULT_CONFIG.logoImage,
                     logo_size: DEFAULT_CONFIG.logoSize,
-                    btn_bg_color: DEFAULT_CONFIG.btnBgColor,
-                    btn_text_color: DEFAULT_CONFIG.btnTextColor,
-                    btn_hover_bg_color: DEFAULT_CONFIG.btnHoverBgColor,
-                    btn_hover_text_color: DEFAULT_CONFIG.btnHoverTextColor,
+                    btn_header_bg: DEFAULT_CONFIG.btnHeaderBg,
+                    btn_header_text_color: DEFAULT_CONFIG.btnHeaderTextColor,
+                    btn_header_hover_bg: DEFAULT_CONFIG.btnHeaderHoverBg,
+                    btn_header_hover_text: DEFAULT_CONFIG.btnHeaderHoverText,
+                    btn_hero_bg: DEFAULT_CONFIG.btnHeroBg,
+                    btn_hero_text_color: DEFAULT_CONFIG.btnHeroTextColor,
+                    btn_hero_hover_bg: DEFAULT_CONFIG.btnHeroHoverBg,
+                    btn_hero_hover_text: DEFAULT_CONFIG.btnHeroHoverText,
+                    btn_form_bg: DEFAULT_CONFIG.btnFormBg,
+                    btn_form_text_color: DEFAULT_CONFIG.btnFormTextColor,
+                    btn_form_hover_bg: DEFAULT_CONFIG.btnFormHoverBg,
+                    btn_form_hover_text: DEFAULT_CONFIG.btnFormHoverText,
                     hero_image: DEFAULT_CONFIG.heroImage,
                     hero_title: DEFAULT_CONFIG.heroTitle,
                     hero_subtitle: DEFAULT_CONFIG.heroSubtitle,
@@ -274,10 +298,18 @@ async function saveAppConfigAsync(config) {
                     logo_text: config.logoText,
                     logo_image: config.logoImage,
                     logo_size: config.logoSize,
-                    btn_bg_color: config.btnBgColor,
-                    btn_text_color: config.btnTextColor,
-                    btn_hover_bg_color: config.btnHoverBgColor,
-                    btn_hover_text_color: config.btnHoverTextColor,
+                    btn_header_bg: config.btnHeaderBg,
+                    btn_header_text_color: config.btnHeaderTextColor,
+                    btn_header_hover_bg: config.btnHeaderHoverBg,
+                    btn_header_hover_text: config.btnHeaderHoverText,
+                    btn_hero_bg: config.btnHeroBg,
+                    btn_hero_text_color: config.btnHeroTextColor,
+                    btn_hero_hover_bg: config.btnHeroHoverBg,
+                    btn_hero_hover_text: config.btnHeroHoverText,
+                    btn_form_bg: config.btnFormBg,
+                    btn_form_text_color: config.btnFormTextColor,
+                    btn_form_hover_bg: config.btnFormHoverBg,
+                    btn_form_hover_text: config.btnFormHoverText,
                     hero_image: config.heroImage,
                     hero_title: config.heroTitle,
                     hero_subtitle: config.heroSubtitle,
@@ -520,10 +552,20 @@ async function initLandingPage() {
 
     // Update Button Colors dynamically
     const root = document.documentElement;
-    if (config.btnBgColor) root.style.setProperty('--btn-bg', config.btnBgColor);
-    if (config.btnTextColor) root.style.setProperty('--btn-text', config.btnTextColor);
-    if (config.btnHoverBgColor) root.style.setProperty('--btn-hover-bg', config.btnHoverBgColor);
-    if (config.btnHoverTextColor) root.style.setProperty('--btn-hover-text', config.btnHoverTextColor);
+    if (config.btnHeaderBg) root.style.setProperty('--btn-header-bg', config.btnHeaderBg);
+    if (config.btnHeaderTextColor) root.style.setProperty('--btn-header-text', config.btnHeaderTextColor);
+    if (config.btnHeaderHoverBg) root.style.setProperty('--btn-header-hover-bg', config.btnHeaderHoverBg);
+    if (config.btnHeaderHoverText) root.style.setProperty('--btn-header-hover-text', config.btnHeaderHoverText);
+
+    if (config.btnHeroBg) root.style.setProperty('--btn-hero-bg', config.btnHeroBg);
+    if (config.btnHeroTextColor) root.style.setProperty('--btn-hero-text', config.btnHeroTextColor);
+    if (config.btnHeroHoverBg) root.style.setProperty('--btn-hero-hover-bg', config.btnHeroHoverBg);
+    if (config.btnHeroHoverText) root.style.setProperty('--btn-hero-hover-text', config.btnHeroHoverText);
+
+    if (config.btnFormBg) root.style.setProperty('--btn-form-bg', config.btnFormBg);
+    if (config.btnFormTextColor) root.style.setProperty('--btn-form-text', config.btnFormTextColor);
+    if (config.btnFormHoverBg) root.style.setProperty('--btn-form-hover-bg', config.btnFormHoverBg);
+    if (config.btnFormHoverText) root.style.setProperty('--btn-form-hover-text', config.btnFormHoverText);
 
     // Update Typography dynamically
     if (config.heroTitleSize) root.style.setProperty('--hero-title-size', `${config.heroTitleSize}px`);
@@ -829,10 +871,20 @@ async function loadAdminDashboard() {
             config.logoText = getVal('cfg-logo-text', config.logoText);
             config.logoImage = getVal('cfg-logo-image', config.logoImage);
             config.logoSize = parseInt(getVal('cfg-logo-size', '40'), 10) || 40;
-            config.btnBgColor = getVal('cfg-btn-bg', config.btnBgColor);
-            config.btnTextColor = getVal('cfg-btn-text', config.btnTextColor);
-            config.btnHoverBgColor = getVal('cfg-btn-hover-bg', config.btnHoverBgColor);
-            config.btnHoverTextColor = getVal('cfg-btn-hover-text', config.btnHoverTextColor);
+            config.btnHeaderBg = getVal('cfg-btn-header-bg', config.btnHeaderBg);
+            config.btnHeaderTextColor = getVal('cfg-btn-header-text-color', config.btnHeaderTextColor);
+            config.btnHeaderHoverBg = getVal('cfg-btn-header-hover-bg', config.btnHeaderHoverBg);
+            config.btnHeaderHoverText = getVal('cfg-btn-header-hover-text', config.btnHeaderHoverText);
+
+            config.btnHeroBg = getVal('cfg-btn-hero-bg', config.btnHeroBg);
+            config.btnHeroTextColor = getVal('cfg-btn-hero-text-color', config.btnHeroTextColor);
+            config.btnHeroHoverBg = getVal('cfg-btn-hero-hover-bg', config.btnHeroHoverBg);
+            config.btnHeroHoverText = getVal('cfg-btn-hero-hover-text', config.btnHeroHoverText);
+
+            config.btnFormBg = getVal('cfg-btn-form-bg', config.btnFormBg);
+            config.btnFormTextColor = getVal('cfg-btn-form-text-color', config.btnFormTextColor);
+            config.btnFormHoverBg = getVal('cfg-btn-form-hover-bg', config.btnFormHoverBg);
+            config.btnFormHoverText = getVal('cfg-btn-form-hover-text', config.btnFormHoverText);
             config.contactInfo = getVal('cfg-contact-info', config.contactInfo);
             config.heroTitleSize = parseInt(getVal('cfg-hero-title-size', '72'), 10) || 72;
             config.heroTitleColor = getVal('cfg-hero-title-color', config.heroTitleColor);
@@ -1142,10 +1194,20 @@ async function loadConfigForm() {
     setVal('cfg-logo-text', config.logoText || '');
     setVal('cfg-logo-image', config.logoImage || '');
     setVal('cfg-logo-size', config.logoSize || 40);
-    setVal('cfg-btn-bg', config.btnBgColor || '#0073F7');
-    setVal('cfg-btn-text', config.btnTextColor || '#FFFFFF');
-    setVal('cfg-btn-hover-bg', config.btnHoverBgColor || '#0A43C3');
-    setVal('cfg-btn-hover-text', config.btnHoverTextColor || '#FFFFFF');
+    setVal('cfg-btn-header-bg', config.btnHeaderBg || '#FFFFFF');
+    setVal('cfg-btn-header-text-color', config.btnHeaderTextColor || '#0073F7');
+    setVal('cfg-btn-header-hover-bg', config.btnHeaderHoverBg || '#00d6f8');
+    setVal('cfg-btn-header-hover-text', config.btnHeaderHoverText || '#FFFFFF');
+
+    setVal('cfg-btn-hero-bg', config.btnHeroBg || 'transparent');
+    setVal('cfg-btn-hero-text-color', config.btnHeroTextColor || '#FFFFFF');
+    setVal('cfg-btn-hero-hover-bg', config.btnHeroHoverBg || '#FFFFFF');
+    setVal('cfg-btn-hero-hover-text', config.btnHeroHoverText || '#0073F7');
+
+    setVal('cfg-btn-form-bg', config.btnFormBg || '#00d6f8');
+    setVal('cfg-btn-form-text-color', config.btnFormTextColor || '#0b2963');
+    setVal('cfg-btn-form-hover-bg', config.btnFormHoverBg || '#FFFFFF');
+    setVal('cfg-btn-form-hover-text', config.btnFormHoverText || '#0b2963');
     setVal('cfg-contact-info', config.contactInfo || '');
     setVal('cfg-hero-title-size', config.heroTitleSize || 72);
     setVal('cfg-hero-title-color', config.heroTitleColor || '#FFFFFF');

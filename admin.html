@@ -258,42 +258,81 @@
                     </div>
 
                     <div class="admin-card">
-                        <div class="admin-card-title">Cores dos Botões (Tema)</div>
-                        <div class="grid-2">
-                            <div class="admin-form-group">
-                                <label class="admin-label" for="cfg-btn-bg">Cor dos Botões (Repouso)</label>
-                                <input type="color" class="admin-control" id="cfg-btn-bg" style="height: 45px; padding: 4px; cursor: pointer;">
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="admin-label" for="cfg-btn-text">Cor das Fontes dos Botões (Repouso)</label>
-                                <input type="color" class="admin-control" id="cfg-btn-text" style="height: 45px; padding: 4px; cursor: pointer;">
-                            </div>
-                        </div>
-                        <div class="grid-2" style="margin-top: 16px;">
-                            <div class="admin-form-group">
-                                <label class="admin-label" for="cfg-btn-hover-bg">Cor dos Botões (Ao Passar o Mouse)</label>
-                                <input type="color" class="admin-control" id="cfg-btn-hover-bg" style="height: 45px; padding: 4px; cursor: pointer;">
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="admin-label" for="cfg-btn-hover-text">Cor das Fontes dos Botões (Ao Passar o Mouse)</label>
-                                <input type="color" class="admin-control" id="cfg-btn-hover-text" style="height: 45px; padding: 4px; cursor: pointer;">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="admin-card">
-                        <div class="admin-card-title">Textos dos Botões</div>
+                        <div class="admin-card-title">Personalização dos Botões (Texto e Cores)</div>
+                        
+                        <!-- Botão do Topo (Navegação) -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Botão do Topo (Navegação)</div>
                         <div class="admin-form-group">
-                            <label class="admin-label" for="cfg-btn-header-text">Botão do Topo (Navegação)</label>
+                            <label class="admin-label" for="cfg-btn-header-text">Texto do Botão</label>
                             <input type="text" class="admin-control" id="cfg-btn-header-text" placeholder="Ex: Seja Fluir" required>
                         </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-header-bg">Fundo (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-header-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-header-text-color">Texto (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-header-text-color" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-header-hover-bg">Fundo (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-header-hover-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-header-hover-text">Texto (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-header-hover-text" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <!-- Botão de Destaque (Seção Hero) -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Botão de Destaque (Seção Hero)</div>
                         <div class="admin-form-group">
-                            <label class="admin-label" for="cfg-btn-hero-text">Botão de Destaque (Seção Hero)</label>
+                            <label class="admin-label" for="cfg-btn-hero-text">Texto do Botão</label>
                             <input type="text" class="admin-control" id="cfg-btn-hero-text" placeholder="Ex: Fale com a gente" required>
                         </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-hero-bg">Fundo (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-hero-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-hero-text-color">Texto (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-hero-text-color" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-hero-hover-bg">Fundo (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-hero-hover-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-hero-hover-text">Texto (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-hero-hover-text" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                        </div>
+
+                        <!-- Botão do Formulário de Contato -->
+                        <div style="font-weight: 600; margin-bottom: 12px; color: var(--primary);">Botão do Formulário de Contato</div>
                         <div class="admin-form-group">
-                            <label class="admin-label" for="cfg-btn-form-text">Botão do Formulário de Contato</label>
+                            <label class="admin-label" for="cfg-btn-form-text">Texto do Botão</label>
                             <input type="text" class="admin-control" id="cfg-btn-form-text" placeholder="Ex: Quero me cadastrar agora" required>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;">
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-form-bg">Fundo (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-form-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-form-text-color">Texto (Repouso)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-form-text-color" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-form-hover-bg">Fundo (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-form-hover-bg" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
+                            <div class="admin-form-group" style="margin-bottom: 0;">
+                                <label class="admin-label" for="cfg-btn-form-hover-text">Texto (Hover)</label>
+                                <input type="color" class="admin-control" id="cfg-btn-form-hover-text" style="height: 40px; padding: 2px; cursor: pointer;">
+                            </div>
                         </div>
                     </div>
 
