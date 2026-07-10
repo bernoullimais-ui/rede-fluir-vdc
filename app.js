@@ -1651,3 +1651,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.supabaseClient = supabaseClient;
 window.getAppConfigAsync = getAppConfigAsync;
 window.updateLeadStatusAsync = updateLeadStatusAsync;
+window.getLeadsAsync = getLeadsAsync;

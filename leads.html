@@ -116,11 +116,11 @@
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>Data/Hora</th>
                                 <th>Nome</th>
                                 <th>WhatsApp</th>
                                 <th>E-mail</th>
                                 <th>Modalidade</th>
+                                <th>Data de Cadastro</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -202,13 +202,12 @@
 
         async function renderColabStats() {
             try {
-                const { data, error } = await supabaseClient.from('leads').select('status');
-                if (error) throw error;
+                const leads = await getLeadsAsync();
                 
                 const stats = { total: 0, pending: 0, contact: 0, enrolled: 0 };
-                if (data) {
-                    stats.total = data.length;
-                    data.forEach(lead => {
+                if (leads) {
+                    stats.total = leads.length;
+                    leads.forEach(lead => {
                         if (lead.status === 'Pendente') stats.pending++;
                         else if (lead.status === 'Em Atendimento') stats.contact++;
                         else if (lead.status === 'Matriculado') stats.enrolled++;
@@ -230,19 +229,17 @@
             const statusFilter = document.getElementById('lead-filter-status').value;
             
             try {
-                let query = supabaseClient.from('leads').select('*').order('created_at', { ascending: false });
-                const { data, error } = await query;
-                if (error) throw error;
+                const leads = await getLeadsAsync();
                 
-                if (!data || data.length === 0) {
+                if (!leads || leads.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhum lead cadastrado ainda.</td></tr>`;
                     return;
                 }
                 
-                const filteredData = data.filter(lead => {
+                const filteredData = leads.filter(lead => {
                     const matchesSearch = 
                         (lead.name && lead.name.toLowerCase().includes(searchVal)) ||
-                        (lead.phone && lead.phone.toLowerCase().includes(searchVal)) ||
+                        (lead.whatsapp && lead.whatsapp.toLowerCase().includes(searchVal)) ||
                         (lead.email && lead.email.toLowerCase().includes(searchVal));
                     
                     const matchesStatus = statusFilter === 'todos' || lead.status === statusFilter;
@@ -255,26 +252,34 @@
                     return;
                 }
                 
-                tbody.innerHTML = filteredData.map(lead => {
-                    const formattedDate = new Date(lead.created_at).toLocaleString('pt-BR');
-                    return `
-                        <tr>
-                            <td>${formattedDate}</td>
-                            <td><strong>${lead.name}</strong></td>
-                            <td><a href="https://wa.me/55${lead.phone.replace(/\D/g, '')}" target="_blank" style="color: var(--primary); font-weight: 600;">${lead.phone}</a></td>
-                            <td>${lead.email || '-'}</td>
-                            <td><span class="badge" style="background-color: var(--primary-light); color: var(--primary);">${lead.modality || '-'}</span></td>
-                            <td>
-                                <select class="status-select ${getStatusClass(lead.status)}" data-id="${lead.id}">
-                                    <option value="Pendente" ${lead.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                                    <option value="Em Atendimento" ${lead.status === 'Em Atendimento' ? 'selected' : ''}>Em Atendimento</option>
-                                    <option value="Matriculado" ${lead.status === 'Matriculado' ? 'selected' : ''}>Matriculado</option>
-                                    <option value="Sem Interesse" ${lead.status === 'Sem Interesse' ? 'selected' : ''}>Sem Interesse</option>
-                                </select>
-                            </td>
-                        </tr>
+                tbody.innerHTML = '';
+                filteredData.forEach(lead => {
+                    const tr = document.createElement('tr');
+                    const formattedDate = new Date(lead.date).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    
+                    tr.innerHTML = `
+                        <td><strong>${lead.name}</strong></td>
+                        <td><a href="https://wa.me/${lead.whatsapp.replace(/\D/g, '')}" target="_blank" style="color: var(--primary); font-weight: 600;">${lead.whatsapp}</a></td>
+                        <td>${lead.email || '-'}</td>
+                        <td><span class="badge" style="background-color: var(--primary-light); color: var(--primary);">${lead.modality || '-'}</span></td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            <select class="status-select ${getStatusClass(lead.status)}" data-id="${lead.id}">
+                                <option value="Pendente" ${lead.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                                <option value="Em Atendimento" ${lead.status === 'Em Atendimento' ? 'selected' : ''}>Em Atendimento</option>
+                                <option value="Matriculado" ${lead.status === 'Matriculado' ? 'selected' : ''}>Matriculado</option>
+                                <option value="Sem Interesse" ${lead.status === 'Sem Interesse' ? 'selected' : ''}>Sem Interesse</option>
+                            </select>
+                        </td>
                     `;
-                }).join('');
+                    tbody.appendChild(tr);
+                });
                 
                 // Add change status listeners
                 document.querySelectorAll('.status-select').forEach(select => {
@@ -313,20 +318,19 @@
 
         async function exportColabLeadsCSV() {
             try {
-                const { data, error } = await supabaseClient.from('leads').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
+                const leads = await getLeadsAsync();
                 
-                if (!data || data.length === 0) {
+                if (!leads || leads.length === 0) {
                     alert('Não há dados para exportar.');
                     return;
                 }
                 
                 let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-                csvContent += "Data/Hora;Nome;WhatsApp;E-mail;Modalidade;Status\n";
+                csvContent += "Nome;WhatsApp;E-mail;Modalidade;Data/Hora;Status\n";
                 
-                data.forEach(lead => {
-                    const formattedDate = new Date(lead.created_at).toLocaleString('pt-BR');
-                    csvContent += `"${formattedDate}";"${lead.name}";"${lead.phone}";"${lead.email || ''}";"${lead.modality || ''}";"${lead.status}"\n`;
+                leads.forEach(lead => {
+                    const formattedDate = new Date(lead.date).toLocaleString('pt-BR');
+                    csvContent += `"${lead.name}";"${lead.whatsapp}";"${lead.email || ''}";"${lead.modality || ''}";"${formattedDate}";"${lead.status}"\n`;
                 });
                 
                 const encodedUri = encodeURI(csvContent);
