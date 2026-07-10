@@ -12,6 +12,7 @@ const DEFAULT_CONFIG = {
     youtube: 'https://youtube.com/redefluir',
     linkedin: 'https://linkedin.com/company/redefluir',
     adminPassword: 'admin123',
+    colabPassword: 'fluircolab',
     logoText: 'Fluir',
     logoImage: '',
     logoSize: 40,
@@ -121,6 +122,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                 finalConfig.youtube = configData.youtube || finalConfig.youtube;
                 finalConfig.linkedin = configData.linkedin || finalConfig.linkedin;
                 finalConfig.adminPassword = configData.admin_password || finalConfig.adminPassword;
+                finalConfig.colabPassword = configData.colab_password || finalConfig.colabPassword;
                 // Colunas de customização com fallback seguro caso o banco ainda não tenha sido alterado
                 finalConfig.logoText = configData.logo_text !== undefined && configData.logo_text !== null ? configData.logo_text : finalConfig.logoText;
                 finalConfig.logoImage = configData.logo_image !== undefined && configData.logo_image !== null ? configData.logo_image : finalConfig.logoImage;
@@ -170,6 +172,7 @@ async function getAppConfigAsync(forceRefresh = false) {
                     youtube: DEFAULT_CONFIG.youtube,
                     linkedin: DEFAULT_CONFIG.linkedin,
                     admin_password: DEFAULT_CONFIG.adminPassword,
+                    colab_password: DEFAULT_CONFIG.colabPassword,
                     logo_text: DEFAULT_CONFIG.logoText,
                     logo_image: DEFAULT_CONFIG.logoImage,
                     logo_size: DEFAULT_CONFIG.logoSize,
@@ -304,6 +307,7 @@ async function saveAppConfigAsync(config) {
                     youtube: config.youtube,
                     linkedin: config.linkedin,
                     admin_password: config.adminPassword,
+                    colab_password: config.colabPassword,
                     logo_text: config.logoText,
                     logo_image: config.logoImage,
                     logo_size: config.logoSize,
@@ -960,6 +964,10 @@ async function loadAdminDashboard() {
             if (newPass) {
                 config.adminPassword = newPass;
             }
+            const newColabPass = getVal('cfg-colab-password');
+            if (newColabPass) {
+                config.colabPassword = newColabPass;
+            }
             
             await saveAppConfigAsync(config);
             showToast('Configurações salvas com sucesso!');
@@ -1281,6 +1289,7 @@ async function loadConfigForm() {
     setVal('cfg-btn-saiba-mais-size', config.btnSaibaMaisSize || 18);
     setVal('cfg-btn-saiba-mais-color', config.btnSaibaMaisColor || '#0073F7');
     setVal('cfg-btn-saiba-mais-weight', config.btnSaibaMaisWeight || '700');
+    setVal('cfg-colab-password', '');
 }
 
 // Modalities management in Admin tab
@@ -1637,3 +1646,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+
+// Expor funções e cliente globally para uso em leads.html
+window.supabaseClient = supabaseClient;
+window.getAppConfigAsync = getAppConfigAsync;
+window.updateLeadStatusAsync = updateLeadStatusAsync;
