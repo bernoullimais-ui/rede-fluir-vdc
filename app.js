@@ -489,6 +489,247 @@ function showToast(message) {
     }
 }
 
+// --- METRICS & ACCESS DATA TRACKING ---
+
+async function trackEventAsync(action = 'view') {
+    // 1. Obter ou criar um visitor_id único
+    let visitorId = localStorage.getItem('fluir_visitor_id');
+    if (!visitorId) {
+        visitorId = 'vis_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('fluir_visitor_id', visitorId);
+    }
+
+    // 2. Detectar dispositivo, navegador e sistema operacional
+    const ua = navigator.userAgent;
+    let device = 'Desktop';
+    if (/tablet|ipad|playbook|silk/i.test(ua)) {
+        device = 'Tablet';
+    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated/i.test(ua)) {
+        device = 'Mobile';
+    }
+
+    let browser = 'Outro';
+    if (ua.indexOf("Chrome") > -1) {
+        browser = "Chrome";
+    } else if (ua.indexOf("Safari") > -1) {
+        browser = "Safari";
+    } else if (ua.indexOf("Firefox") > -1) {
+        browser = "Firefox";
+    } else if (ua.indexOf("MSIE") > -1 || !!document.documentMode === true) {
+        browser = "IE";
+    } else if (ua.indexOf("Edge") > -1) {
+        browser = "Edge";
+    }
+
+    let os = 'Outro';
+    if (ua.indexOf("Win") > -1) os = "Windows";
+    else if (ua.indexOf("Mac") > -1) os = "macOS";
+    else if (ua.indexOf("Linux") > -1) os = "Linux";
+    else if (ua.indexOf("Android") > -1) os = "Android";
+    else if (ua.indexOf("like Mac") > -1) os = "iOS";
+
+    // 3. Detectar origem de tráfego (referrer) e parâmetros UTM
+    const referrerUrl = document.referrer;
+    let referrer = 'Direto';
+    if (referrerUrl) {
+        try {
+            const url = new URL(referrerUrl);
+            if (url.hostname.includes('google')) referrer = 'Google';
+            else if (url.hostname.includes('instagram')) referrer = 'Instagram';
+            else if (url.hostname.includes('facebook')) referrer = 'Facebook';
+            else if (url.hostname.includes('t.co') || url.hostname.includes('twitter')) referrer = 'Twitter';
+            else if (url.hostname.includes('whatsapp')) referrer = 'WhatsApp';
+            else referrer = url.hostname;
+        } catch (e) {
+            referrer = referrerUrl;
+        }
+    }
+
+    // Parâmetros UTM na URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const utm_source = urlParams.get('utm_source') || '';
+    const utm_medium = urlParams.get('utm_medium') || '';
+    const utm_campaign = urlParams.get('utm_campaign') || '';
+
+    // Se utm_source estiver preenchido, tratamos como a origem do tráfego principal
+    if (utm_source) {
+        referrer = utm_source;
+    }
+
+    const eventData = {
+        visitor_id: visitorId,
+        created_at: new Date().toISOString(),
+        device,
+        browser,
+        os,
+        referrer,
+        utm_source,
+        utm_medium,
+        utm_campaign,
+        action
+    };
+
+    // 4. Salvar backup local no navegador do visitante
+    try {
+        let localViews = localStorage.getItem('fluir_page_views');
+        localViews = localViews ? JSON.parse(localViews) : [];
+        localViews.push(eventData);
+        if (localViews.length > 1000) {
+            localViews.shift(); // Limitar tamanho do histórico local
+        }
+        localStorage.setItem('fluir_page_views', JSON.stringify(localViews));
+    } catch (e) {
+        console.error("Erro ao salvar page view no LocalStorage:", e);
+    }
+
+    // 5. Salvar no Supabase se o cliente estiver conectado
+    if (supabaseClient) {
+        try {
+            const { error } = await supabaseClient
+                .from('page_views')
+                .insert({
+                    visitor_id: eventData.visitor_id,
+                    device: eventData.device,
+                    browser: eventData.browser,
+                    os: eventData.os,
+                    referrer: eventData.referrer,
+                    utm_source: eventData.utm_source,
+                    utm_medium: eventData.utm_medium,
+                    utm_campaign: eventData.utm_campaign,
+                    action: eventData.action
+                });
+            if (error) throw error;
+        } catch (e) {
+            // Falha silenciosa no browser do cliente para não quebrar a página
+            console.warn("Falha ao sincronizar acesso com Supabase:", e);
+        }
+    }
+}
+
+// Gerador de Dados de Demonstração para testes locais/visualização imediata
+function generateSimulatedPageViews() {
+    const data = [];
+    const devices = ['Desktop', 'Mobile', 'Tablet'];
+    const deviceWeights = [0.35, 0.58, 0.07];
+    
+    const browsers = ['Chrome', 'Safari', 'Firefox', 'Edge'];
+    const browserWeights = [0.62, 0.23, 0.1, 0.05];
+
+    const oss = {
+        'Desktop': ['Windows', 'macOS', 'Linux'],
+        'DesktopWeights': [0.65, 0.3, 0.05],
+        'Mobile': ['Android', 'iOS'],
+        'MobileWeights': [0.55, 0.45],
+        'Tablet': ['iOS', 'Android'],
+        'TabletWeights': [0.75, 0.25]
+    };
+
+    const referrers = ['Direto', 'Google', 'Instagram', 'Facebook', 'WhatsApp'];
+    const referrerWeights = [0.22, 0.28, 0.32, 0.12, 0.06];
+
+    function getWeightedRandom(items, weights) {
+        const r = Math.random();
+        let sum = 0;
+        for (let i = 0; i < items.length; i++) {
+            sum += weights[i];
+            if (r <= sum) return items[i];
+        }
+        return items[items.length - 1];
+    }
+
+    const totalDays = 30;
+    const today = new Date();
+    
+    for (let day = 0; day < totalDays; day++) {
+        const currentDate = new Date();
+        currentDate.setDate(today.getDate() - day);
+        
+        // Quantidade aleatória de acessos por dia (20 a 45)
+        const visitorsCount = Math.floor(Math.random() * 25) + 20;
+        
+        for (let v = 0; v < visitorsCount; v++) {
+            const visitorId = 'sim_vis_' + Math.random().toString(36).substring(2, 10);
+            const dev = getWeightedRandom(devices, deviceWeights);
+            const br = getWeightedRandom(browsers, browserWeights);
+            
+            let osName = 'Outro';
+            if (dev === 'Desktop') {
+                osName = getWeightedRandom(oss.Desktop, oss.DesktopWeights);
+            } else if (dev === 'Mobile') {
+                osName = getWeightedRandom(oss.Mobile, oss.MobileWeights);
+            } else {
+                osName = getWeightedRandom(oss.Tablet, oss.TabletWeights);
+            }
+
+            const ref = getWeightedRandom(referrers, referrerWeights);
+            
+            const eventDate = new Date(currentDate);
+            eventDate.setHours(Math.floor(Math.random() * 16) + 7, Math.floor(Math.random() * 60)); // Horários das 07h às 23h
+
+            // Evento de Visualização (Page View)
+            data.push({
+                visitor_id: visitorId,
+                created_at: eventDate.toISOString(),
+                device: dev,
+                browser: br,
+                os: osName,
+                referrer: ref,
+                action: 'view'
+            });
+
+            // 22% de chance de clicar no WhatsApp
+            if (Math.random() < 0.22) {
+                const clickDate = new Date(eventDate);
+                clickDate.setSeconds(clickDate.getSeconds() + Math.floor(Math.random() * 90) + 15);
+                data.push({
+                    visitor_id: visitorId,
+                    created_at: clickDate.toISOString(),
+                    device: dev,
+                    browser: br,
+                    os: osName,
+                    referrer: ref,
+                    action: 'whatsapp_click'
+                });
+            }
+        }
+    }
+    
+    return data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+}
+
+// Obter Dados de Acesso para o painel administrativo
+async function getPageViewsAsync() {
+    if (supabaseClient) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                // Tratar erro PGRST205 (tabela inexistente) de forma graciosa
+                if (error.code === 'PGRST205' || (error.message && error.message.includes('relation "public.page_views" does not exist'))) {
+                    console.warn("Tabela public.page_views não encontrada no Supabase. Fallback para LocalStorage.");
+                } else {
+                    throw error;
+                }
+            } else {
+                return data;
+            }
+        } catch (e) {
+            console.warn("Erro ao carregar page views do Supabase, usando LocalStorage:", e);
+        }
+    }
+
+    let localViews = localStorage.getItem('fluir_page_views');
+    if (!localViews) {
+        const simulated = generateSimulatedPageViews();
+        localStorage.setItem('fluir_page_views', JSON.stringify(simulated));
+        return simulated;
+    }
+    return JSON.parse(localViews);
+}
+
 // --- LANDING PAGE LOGIC ---
 async function initLandingPage() {
     const config = await getAppConfigAsync();
@@ -789,6 +1030,7 @@ async function initLandingPage() {
             };
 
             await saveLeadAsync(newLead);
+            await trackEventAsync('form_submit');
 
             // Clear form
             vipForm.reset();
@@ -797,6 +1039,15 @@ async function initLandingPage() {
             showToast('Cadastro VIP realizado com sucesso!');
         });
     }
+
+    // 5. Rastreamento automático de visualização de página e cliques do WhatsApp
+    await trackEventAsync('view');
+
+    document.querySelectorAll('.whatsapp-url').forEach(el => {
+        el.addEventListener('click', () => {
+            trackEventAsync('whatsapp_click');
+        });
+    });
 }
 
 // --- ADMIN PANEL LOGIC ---
@@ -899,6 +1150,7 @@ async function loadAdminDashboard() {
     await loadConfigForm();
     await renderModalitiesList();
     await renderSpacesList();
+    await renderAnalytics();
     
     // Register general save listeners
     const configForm = document.getElementById('admin-config-form');
@@ -1604,6 +1856,382 @@ async function exportLeadsToCSV() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+let viewsChart = null;
+let useDemoData = false;
+
+async function renderAnalytics() {
+    const listDiv = document.getElementById('tab-analytics');
+    if (!listDiv) return;
+
+    // 1. Obter os dados de acessos
+    let pageViews = [];
+    
+    if (supabaseClient && !useDemoData) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('page_views')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            pageViews = data || [];
+            
+            // Atualizar banner de status da conexão
+            const dbTitle = document.getElementById('db-status-title');
+            const dbDesc = document.getElementById('db-status-desc');
+            const dbBanner = document.getElementById('db-status-banner');
+            if (dbTitle) dbTitle.textContent = "Conectado ao Supabase";
+            if (dbDesc) dbDesc.textContent = "As métricas reais de acesso estão sendo lidas do banco de dados.";
+            if (dbBanner) {
+                dbBanner.style.background = "#F0FDF4";
+                dbBanner.style.borderColor = "rgba(34, 197, 94, 0.2)";
+            }
+        } catch (err) {
+            console.warn("Erro ao buscar page_views do Supabase:", err);
+            const dbTitle = document.getElementById('db-status-title');
+            const dbDesc = document.getElementById('db-status-desc');
+            const dbBanner = document.getElementById('db-status-banner');
+            if (dbTitle) dbTitle.textContent = "Tabela page_views não configurada";
+            if (dbDesc) dbDesc.textContent = "Não foi possível conectar à tabela 'page_views' no Supabase. Exibindo dados de demonstração.";
+            if (dbBanner) {
+                dbBanner.style.background = "#FEF3C7";
+                dbBanner.style.borderColor = "rgba(245, 158, 11, 0.2)";
+            }
+            
+            // Fallback para LocalStorage/Demo
+            let localViews = localStorage.getItem('fluir_page_views');
+            if (localViews) {
+                pageViews = JSON.parse(localViews);
+            } else {
+                pageViews = generateSimulatedPageViews();
+                localStorage.setItem('fluir_page_views', JSON.stringify(pageViews));
+            }
+        }
+    } else {
+        const dbTitle = document.getElementById('db-status-title');
+        const dbDesc = document.getElementById('db-status-desc');
+        const dbBanner = document.getElementById('db-status-banner');
+        if (dbTitle) dbTitle.textContent = useDemoData ? "Visualização de Demonstração" : "Modo Local";
+        if (dbDesc) dbDesc.textContent = useDemoData ? "Exibindo dados simulados com tráfego realista de 30 dias para demonstração." : "Exibindo dados salvos localmente neste navegador.";
+        if (dbBanner) {
+            dbBanner.style.background = "#EFF6FF";
+            dbBanner.style.borderColor = "rgba(59, 130, 246, 0.2)";
+        }
+        
+        let localViews = localStorage.getItem('fluir_page_views');
+        if (useDemoData || !localViews) {
+            pageViews = generateSimulatedPageViews();
+        } else {
+            pageViews = JSON.parse(localViews);
+        }
+    }
+
+    // 2. Buscar Leads para calcular a taxa de conversão
+    const leads = await getLeadsAsync();
+
+    // 3. Calcular KPIs
+    const totalViews = pageViews.filter(v => v.action === 'view').length;
+    const uniqueVisitors = new Set(pageViews.map(v => v.visitor_id)).size;
+    const whatsappClicks = pageViews.filter(v => v.action === 'whatsapp_click').length;
+    const totalLeads = leads.length;
+    const conversionRate = uniqueVisitors > 0 ? ((totalLeads / uniqueVisitors) * 100).toFixed(1) : '0.0';
+
+    const metricViews = document.getElementById('metric-total-views');
+    const metricVisitors = document.getElementById('metric-unique-visitors');
+    const metricClicks = document.getElementById('metric-whatsapp-clicks');
+    const metricRate = document.getElementById('metric-conversion-rate');
+    const metricSub = document.getElementById('metric-conversion-sub');
+
+    if (metricViews) metricViews.textContent = totalViews;
+    if (metricVisitors) metricVisitors.textContent = uniqueVisitors;
+    if (metricClicks) metricClicks.textContent = whatsappClicks;
+    if (metricRate) metricRate.textContent = conversionRate + '%';
+    if (metricSub) metricSub.textContent = `${totalLeads} Leads / ${uniqueVisitors} Visitantes`;
+
+    // 4. Breakdown de Dispositivos
+    const devices = { Mobile: 0, Desktop: 0, Tablet: 0 };
+    pageViews.forEach(v => {
+        if (!v.device) {
+            devices.Desktop++;
+            return;
+        }
+        const d = v.device.charAt(0).toUpperCase() + v.device.slice(1).toLowerCase();
+        if (devices[d] !== undefined) {
+            devices[d]++;
+        } else {
+            devices.Desktop++;
+        }
+    });
+
+    const totalDevices = (devices.Mobile + devices.Desktop + devices.Tablet) || 1;
+    const mobilePct = ((devices.Mobile / totalDevices) * 100).toFixed(0);
+    const desktopPct = ((devices.Desktop / totalDevices) * 100).toFixed(0);
+    const tabletPct = ((devices.Tablet / totalDevices) * 100).toFixed(0);
+
+    const devicesBreakdownList = document.getElementById('devices-breakdown-list');
+    if (devicesBreakdownList) {
+        devicesBreakdownList.innerHTML = `
+            <div class="device-row">
+                <div class="device-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                        <span class="device-name">Celular (Mobile)</span>
+                        <div class="device-count">${devices.Mobile} visualizações</div>
+                    </div>
+                </div>
+                <div class="device-percentage">${mobilePct}%</div>
+            </div>
+            <div class="device-row">
+                <div class="device-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748B;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                        <span class="device-name">Computador (Desktop)</span>
+                        <div class="device-count">${devices.Desktop} visualizações</div>
+                    </div>
+                </div>
+                <div class="device-percentage">${desktopPct}%</div>
+            </div>
+            <div class="device-row">
+                <div class="device-info">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #D97706;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2zM9 9h6v3H9V9z" />
+                    </svg>
+                    <div>
+                        <span class="device-name">Tablet</span>
+                        <div class="device-count">${devices.Tablet} visualizações</div>
+                    </div>
+                </div>
+                <div class="device-percentage">${tabletPct}%</div>
+            </div>
+        `;
+    }
+
+    // 5. Breakdown de Origem do Tráfego
+    const referrers = {};
+    pageViews.forEach(v => {
+        const ref = v.referrer || 'Direto';
+        referrers[ref] = (referrers[ref] || 0) + 1;
+    });
+
+    const sortedReferrers = Object.entries(referrers)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    const totalRefs = pageViews.length || 1;
+    const referrerBreakdownList = document.getElementById('referrer-breakdown-list');
+    if (referrerBreakdownList) {
+        referrerBreakdownList.innerHTML = sortedReferrers.map(([ref, count], index) => {
+            const pct = ((count / totalRefs) * 100).toFixed(0);
+            const colors = ['', 'accent', 'green', 'purple', 'orange'];
+            const colorClass = colors[index % colors.length];
+            return `
+                <div class="progress-bar-container">
+                    <div class="progress-bar-label-row">
+                        <span>${ref}</span>
+                        <span><strong>${count}</strong> (${pct}%)</span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill ${colorClass}" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 6. Breakdown de OS e Navegadores
+    const oss = {};
+    const browsers = {};
+    pageViews.forEach(v => {
+        const osName = v.os || 'Outro';
+        const browserName = v.browser || 'Outro';
+        oss[osName] = (oss[osName] || 0) + 1;
+        browsers[browserName] = (browsers[browserName] || 0) + 1;
+    });
+
+    const sortedOS = Object.entries(oss).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const sortedBrowsers = Object.entries(browsers).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+    const osBreakdownList = document.getElementById('os-breakdown-list');
+    if (osBreakdownList) {
+        osBreakdownList.innerHTML = sortedOS.map(([osName, count]) => {
+            const pct = ((count / totalRefs) * 100).toFixed(0);
+            return `
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text); font-weight: 500;">${osName}</span>
+                    <span style="color: var(--dark); font-weight: 600;">${pct}% (${count})</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const browserBreakdownList = document.getElementById('browser-breakdown-list');
+    if (browserBreakdownList) {
+        browserBreakdownList.innerHTML = sortedBrowsers.map(([browserName, count]) => {
+            const pct = ((count / totalRefs) * 100).toFixed(0);
+            return `
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid var(--border);">
+                    <span style="color: var(--text); font-weight: 500;">${browserName}</span>
+                    <span style="color: var(--dark); font-weight: 600;">${pct}% (${count})</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 7. Gráfico histórico (Últimos 15 dias)
+    const dailyData = {};
+    for (let i = 14; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        dailyData[dateStr] = { views: 0, visitors: new Set() };
+    }
+
+    pageViews.forEach(v => {
+        const dateObj = new Date(v.created_at || v.date);
+        const dateStr = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        if (dailyData[dateStr]) {
+            if (v.action === 'view') {
+                dailyData[dateStr].views++;
+            }
+            dailyData[dateStr].visitors.add(v.visitor_id);
+        }
+    });
+
+    const labels = Object.keys(dailyData);
+    const viewsData = labels.map(l => dailyData[l].views);
+    const visitorsData = labels.map(l => dailyData[l].visitors.size);
+
+    const canvasEl = document.getElementById('chart-views-over-time');
+    if (canvasEl) {
+        const ctx = canvasEl.getContext('2d');
+        if (viewsChart) {
+            viewsChart.destroy();
+        }
+
+        const gradientViews = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientViews.addColorStop(0, 'rgba(0, 115, 247, 0.3)');
+        gradientViews.addColorStop(1, 'rgba(0, 115, 247, 0.0)');
+
+        const gradientVisitors = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientVisitors.addColorStop(0, 'rgba(2, 132, 199, 0.3)');
+        gradientVisitors.addColorStop(1, 'rgba(2, 132, 199, 0.0)');
+
+        viewsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Visualizações',
+                        data: viewsData,
+                        borderColor: '#0073F7',
+                        borderWidth: 3,
+                        backgroundColor: gradientViews,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#0073F7',
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Visitantes Únicos',
+                        data: visitorsData,
+                        borderColor: '#0284C7',
+                        borderWidth: 2,
+                        backgroundColor: gradientVisitors,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#0284C7',
+                        pointHoverRadius: 5,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: { family: 'Poppins', size: 11 },
+                            usePointStyle: true,
+                            boxWidth: 8
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#0F172A',
+                        titleFont: { family: 'Poppins', weight: 'bold' },
+                        bodyFont: { family: 'Poppins' },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(226, 232, 240, 0.8)' },
+                        ticks: { font: { family: 'Poppins', size: 10 }, stepSize: 1 }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { family: 'Poppins', size: 10 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // 8. Vincular eventos dos botões (executado uma única vez)
+    setupAnalyticsUIHandlers();
+}
+
+let handlersWired = false;
+function setupAnalyticsUIHandlers() {
+    if (handlersWired) return;
+    handlersWired = true;
+
+    const btnToggleDemo = document.getElementById('btn-toggle-demo-data');
+    if (btnToggleDemo) {
+        btnToggleDemo.addEventListener('click', () => {
+            useDemoData = !useDemoData;
+            btnToggleDemo.textContent = useDemoData ? "Exibindo Demo (Ver Reais)" : "Alternar Reais / Demo";
+            renderAnalytics();
+        });
+    }
+
+    const btnShowSql = document.getElementById('btn-show-sql-instructions');
+    const sqlCard = document.getElementById('sql-instructions-card');
+    if (btnShowSql && sqlCard) {
+        btnShowSql.addEventListener('click', () => {
+            sqlCard.style.display = sqlCard.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    const btnCloseSql = document.getElementById('btn-close-sql');
+    if (btnCloseSql && sqlCard) {
+        btnCloseSql.addEventListener('click', () => {
+            sqlCard.style.display = 'none';
+        });
+    }
+
+    const btnCopySql = document.getElementById('btn-copy-sql');
+    if (btnCopySql) {
+        btnCopySql.addEventListener('click', () => {
+            const sqlText = document.getElementById('sql-code-block').textContent.trim();
+            navigator.clipboard.writeText(sqlText).then(() => {
+                alert('Código SQL copiado com sucesso!');
+            }).catch(err => {
+                console.error('Falha ao copiar:', err);
+                alert('Erro ao copiar SQL. Por favor, copie manualmente.');
+            });
+        });
+    }
 }
 
 // Initialize on DOM load

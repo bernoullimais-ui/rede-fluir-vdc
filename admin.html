@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="styles.css">
     <!-- Supabase JS Library CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Chart.js Library CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="admin-body">
 
@@ -72,6 +74,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 Fotos do Espaço
+            </div>
+            <div class="sidebar-link" data-tab="analytics">
+                <!-- Chart/Analytics SVG Icon -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Dados de Acesso
             </div>
         </aside>
 
@@ -498,6 +507,141 @@
                         </svg>
                         Salvar Alterações de Fotos do Espaço
                     </button>
+                </div>
+            </div>
+
+            <!-- TAB 5: ANALYTICS -->
+            <div class="admin-tab" id="tab-analytics">
+                <div class="admin-title-row">
+                    <h1 class="admin-page-title">Dados de Acesso e Métricas</h1>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-outline" id="btn-toggle-demo-data" style="border-radius: 10px; padding: 10px 20px; font-size: 0.9rem; border-color: var(--border); color: var(--text); background: white;">
+                            Alternar Reais / Demo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Database status alert -->
+                <div class="db-status-banner" id="db-status-banner" style="background: var(--primary-light); border: 1px solid rgba(0, 115, 247, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <div style="font-weight: 600; color: var(--dark);" id="db-status-title">Status da Conexão de Métricas</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);" id="db-status-desc">Verificando banco de dados...</div>
+                        </div>
+                    </div>
+                    <button class="btn" id="btn-show-sql-instructions" style="background: var(--white); border: 1px solid var(--border); padding: 6px 12px; font-size: 0.8rem; border-radius: 8px; font-weight: 500; cursor: pointer; color: var(--text);">
+                        Configurar Banco
+                    </button>
+                </div>
+
+                <!-- SQL instructions box (hidden by default) -->
+                <div class="sql-instructions-card" id="sql-instructions-card" style="display: none; background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--dark);">Instruções para Supabase</h3>
+                        <button id="btn-close-sql" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+                    </div>
+                    <p style="font-size: 0.9rem; color: var(--text); margin-bottom: 12px;">Para salvar os dados de acesso globalmente, execute o comando abaixo no **SQL Editor** do seu painel do Supabase:</p>
+                    <pre style="background: #0F172A; color: #F8FAFC; padding: 16px; border-radius: 8px; font-size: 0.85rem; overflow-x: auto; font-family: monospace; white-space: pre-wrap;" id="sql-code-block">
+create table if not exists public.page_views (
+    id uuid default gen_random_uuid() primary key,
+    visitor_id text not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    device text,
+    browser text,
+    os text,
+    referrer text,
+    utm_source text,
+    utm_medium text,
+    utm_campaign text,
+    action text default 'view'
+);
+
+-- Habilitar RLS (Row Level Security)
+alter table public.page_views enable row level security;
+
+-- Criar politicas para permitir insercao e consulta anonima
+create policy "Permitir insercoes publicas em page_views" on public.page_views for insert with check (true);
+create policy "Permitir consultas publicas em page_views" on public.page_views for select using (true);
+                    </pre>
+                    <button class="btn btn-primary" id="btn-copy-sql" style="margin-top: 12px; font-size: 0.85rem; padding: 8px 16px; border-radius: 8px;">
+                        Copiar Código SQL
+                    </button>
+                </div>
+
+                <!-- Stats Grid (Metrics KPIs) -->
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-label">Visualizações Totais</div>
+                        <div class="stat-value" id="metric-total-views">0</div>
+                        <div class="stat-subtext" id="metric-total-views-sub" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Páginas carregadas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Visitantes Únicos</div>
+                        <div class="stat-value" id="metric-unique-visitors" style="color: #0284C7;">0</div>
+                        <div class="stat-subtext" id="metric-unique-visitors-sub" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">IDs únicos salvos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Cliques no WhatsApp</div>
+                        <div class="stat-value" id="metric-whatsapp-clicks" style="color: #059669;">0</div>
+                        <div class="stat-subtext" id="metric-whatsapp-clicks-sub" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Cliques nos CTAs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Taxa de Conversão</div>
+                        <div class="stat-value" id="metric-conversion-rate" style="color: #8B5CF6;">0%</div>
+                        <div class="stat-subtext" id="metric-conversion-sub" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Leads / Visitantes</div>
+                    </div>
+                </div>
+
+                <!-- Main chart and analytics split -->
+                <div class="analytics-row-1" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px;">
+                    <!-- Views over time chart -->
+                    <div class="admin-card" style="margin: 0; display: flex; flex-direction: column;">
+                        <div class="admin-card-title">Acessos nos Últimos 15 Dias</div>
+                        <div style="flex: 1; min-height: 300px; position: relative; display: flex; align-items: center; justify-content: center; width: 100%;">
+                            <canvas id="chart-views-over-time" style="max-height: 320px; width: 100%;"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Devices breakdown -->
+                    <div class="admin-card" style="margin: 0;">
+                        <div class="admin-card-title">Dispositivos Utilizados</div>
+                        <div style="display: flex; flex-direction: column; justify-content: center; gap: 16px;" id="devices-breakdown-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary breakdown: referrers and operating systems -->
+                <div class="analytics-row-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                    <!-- Traffic sources -->
+                    <div class="admin-card" style="margin: 0;">
+                        <div class="admin-card-title">Origem do Tráfego</div>
+                        <div style="display: flex; flex-direction: column; gap: 16px;" id="referrer-breakdown-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- OS and browsers -->
+                    <div class="admin-card" style="margin: 0;">
+                        <div class="admin-card-title">Sistemas e Navegadores</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div>
+                                <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 12px;">Sistemas Operacionais</h4>
+                                <div style="display: flex; flex-direction: column; gap: 10px;" id="os-breakdown-list">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-bottom: 12px;">Navegadores</h4>
+                                <div style="display: flex; flex-direction: column; gap: 10px;" id="browser-breakdown-list">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
