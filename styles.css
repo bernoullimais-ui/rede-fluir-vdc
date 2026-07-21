@@ -1234,6 +1234,7 @@ select.form-control {
     }
     .modalidades-grid, .espaco-grid {
         display: flex !important;
+        justify-content: flex-start !important;
         overflow-x: auto !important;
         scroll-snap-type: x mandatory !important;
         -webkit-overflow-scrolling: touch !important;
